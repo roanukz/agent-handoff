@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.vite/
+coverage/
+# The public labeled set is fetched by `npm run fetch:whowhen`, not vendored.
+data/whowhen/
+.DS_Store

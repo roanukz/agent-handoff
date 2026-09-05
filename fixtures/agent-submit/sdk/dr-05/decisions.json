@@ -1,0 +1,64 @@
+{
+  "toolu_01V8gqRFSDBa9zEizQS9iX1S": {
+    "classification": {
+      "rawTool": "mcp__requisition__threshold_policy",
+      "tool": "threshold_policy",
+      "tier": "A",
+      "reason": "threshold_policy reads only; the agent acts alone",
+      "triggers": []
+    },
+    "decision": "allow"
+  },
+  "toolu_01KzyyvoGY9vcWd1Gg2PS6cH": {
+    "classification": {
+      "rawTool": "mcp__requisition__catalog_lookup",
+      "tool": "catalog_lookup",
+      "tier": "A",
+      "reason": "catalog_lookup reads only; the agent acts alone",
+      "triggers": []
+    },
+    "decision": "allow"
+  },
+  "toolu_01RSURtXhu5W2q7F6ktkL3w6": {
+    "classification": {
+      "rawTool": "mcp__requisition__catalog_lookup",
+      "tool": "catalog_lookup",
+      "tier": "A",
+      "reason": "catalog_lookup reads only; the agent acts alone",
+      "triggers": []
+    },
+    "decision": "allow"
+  },
+  "toolu_01AgZX3fymXig2Uc2V3Tk5aC": {
+    "classification": {
+      "rawTool": "mcp__requisition__catalog_lookup",
+      "tool": "catalog_lookup",
+      "tier": "A",
+      "reason": "catalog_lookup reads only; the agent acts alone",
+      "triggers": []
+    },
+    "decision": "allow"
+  },
+  "toolu_01FTpMzPoHqaoqa7G6PnQJj4": {
+    "classification": {
+      "rawTool": "mcp__requisition__supplier_check",
+      "tool": "supplier_check",
+      "tier": "A",
+      "reason": "supplier_check reads only; the agent acts alone",
+      "triggers": []
+    },
+    "decision": "allow"
+  },
+  "toolu_015DEY28G7qrMgbesgDeUbkk": {
+    "classification": {
+      "rawTool": "mcp__requisition__draft_requisition",
+      "tool": "draft_requisition",
+      "tier": "B",
+      "reason": "draft_requisition within policy at $7,250; the write is recorded in the revert trail",
+      "triggers": [],
+      "amount": 7250,
+      "cumulativeAmount": 7250
+    },
+    "decision": "allow"
+  }
+}

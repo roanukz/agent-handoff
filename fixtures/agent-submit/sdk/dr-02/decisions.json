@@ -1,0 +1,51 @@
+{
+  "toolu_018VDLtwCpLLutQP8Gaqiqh6": {
+    "classification": {
+      "rawTool": "mcp__requisition__catalog_lookup",
+      "tool": "catalog_lookup",
+      "tier": "A",
+      "reason": "catalog_lookup reads only; the agent acts alone",
+      "triggers": []
+    },
+    "decision": "allow"
+  },
+  "toolu_01QjH4wMAvqWTvGMwtB7cHbz": {
+    "classification": {
+      "rawTool": "mcp__requisition__threshold_policy",
+      "tool": "threshold_policy",
+      "tier": "A",
+      "reason": "threshold_policy reads only; the agent acts alone",
+      "triggers": []
+    },
+    "decision": "allow"
+  },
+  "toolu_01AmnuBQKTeupvz8eED9BNWa": {
+    "classification": {
+      "rawTool": "mcp__requisition__supplier_check",
+      "tool": "supplier_check",
+      "tier": "A",
+      "reason": "supplier_check reads only; the agent acts alone",
+      "triggers": []
+    },
+    "decision": "allow"
+  },
+  "toolu_01Pz8KkWHqXpAo1FV2cHiY6g": {
+    "classification": {
+      "rawTool": "mcp__requisition__draft_requisition",
+      "tool": "draft_requisition",
+      "tier": "C",
+      "reason": "draft_requisition raised to tier C: draft amount $11,600 is over the single threshold $10,000",
+      "triggers": [
+        {
+          "kind": "single_threshold",
+          "detail": "draft amount $11,600 is over the single threshold $10,000",
+          "amount": 11600,
+          "threshold": 10000
+        }
+      ],
+      "amount": 11600,
+      "cumulativeAmount": 11600
+    },
+    "decision": "deny"
+  }
+}

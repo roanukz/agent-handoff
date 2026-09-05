@@ -1,0 +1,353 @@
+{
+  "generatedAt": "2026-09-05T05:26:21.760Z",
+  "source": "Who&When (Zhang et al., ICML 2025, arXiv:2505.00212), fetched by npm run fetch:whowhen",
+  "records": 184,
+  "subsets": {
+    "Hand-Crafted": {
+      "records": 58,
+      "stepHits": 2,
+      "agentHits": 21
+    },
+    "Algorithm-Generated": {
+      "records": 126,
+      "stepHits": 1,
+      "agentHits": 3
+    }
+  },
+  "meanSteps": 22.2,
+  "randomStepBaseline": 4.5,
+  "recordsWithAnyFinding": 27,
+  "recordsAllRulesSilent": 25,
+  "findingsPerRecord": 0.6,
+  "stepHitRate": 0.016304347826086956,
+  "agentHitRate": 0.13043478260869565,
+  "stepHits": 3,
+  "agentHits": 24,
+  "unmappedReasons": 91,
+  "reasonMap": {
+    "context-carried": "ignor|overlook|forg[eo]t|omit|dropp?|miss(?:ed|es|ing)? (?:the |a |an )?(?:constraint|requirement|detail|instruction|condition|criteri|specif)|(?:did not|didn't|does not|doesn't|not) (?:include|consider|follow|account for|pass|use the (?:provided|given)|take into account)|criteri|constraint|requirement|misunderst|misinterpret|incorrect(?:ly)? (?:interpret|assum|understood)|wrong (?:assumption|parameter|input|value|keyword|query|search term)|keyword|search term|hallucinat|fabricat|made up|assum(?:ed|es|ing) (?:that|the|a)",
+    "no-duplicate-work": "repeat|again|redundant|same (?:search|query|action|code|request|step|page)|loop|duplicate|re-?run|once more|stuck",
+    "routing": "wrong (?:agent|tool|expert|direction|website|source)|should (?:have )?(?:use|ask|delegat|instruct|call|assign|let|refer|visit)|delegat|instruct|navigat\\w* the agents|third-party|instead|inappropriate|irrelevant (?:website|page|tool|link|source)|not (?:the )?(?:right|appropriate|correct) (?:agent|tool|expert|website|source)|(?:tool|function|website|search) (?:it|that|does|doesn't|cannot|can't|is not)|rel(?:y|ies|ied|ys) on",
+    "termination": "terminat|stop(?:ped|s)? (?:early|prematurely|before)|prematur|(?:did not|didn't|does not|doesn't) (?:report|return|finish|complete|verify|check|continue|wait|retrieve|extract|provide|find|actually)|gave up|incomplete|not (?:yet )?(?:been )?(?:fully )?(?:complet|address|gather|satisf)|has not yet|without (?:finishing|verifying|completing|checking|confirming|performing|gathering)|ended (?:the|without)|conclu(?:de|sion)|directly (?:reach|conclud|provid|answer|g[ai]ve|draw)|draw a conclusion|no further|halt|guess|not (?:fully )?shown|only displayed|failed to (?:access|retrieve|extract|find|provide|transcribe|locate|return)|unable to|inability|not return|did not return|error|404",
+    "permission-continuity": "permission|approv|authoriz|without (?:asking|confirm|consent)|unauthori|bypass|not allowed|forbidden|policy"
+  },
+  "checks": [
+    {
+      "id": "context-carried",
+      "mappedRecords": 28,
+      "firedOnMapped": 2,
+      "hitOnMapped": 0
+    },
+    {
+      "id": "no-duplicate-work",
+      "mappedRecords": 3,
+      "firedOnMapped": 1,
+      "hitOnMapped": 1
+    },
+    {
+      "id": "routing",
+      "mappedRecords": 29,
+      "firedOnMapped": 0,
+      "hitOnMapped": 0
+    },
+    {
+      "id": "termination",
+      "mappedRecords": 57,
+      "firedOnMapped": 1,
+      "hitOnMapped": 0
+    },
+    {
+      "id": "permission-continuity",
+      "mappedRecords": 0,
+      "firedOnMapped": 0,
+      "hitOnMapped": 0
+    }
+  ],
+  "rules": [
+    {
+      "ruleId": "cc-numeric-dropped",
+      "checkId": "context-carried",
+      "firedRecords": 20,
+      "findings": 94,
+      "tp": 2,
+      "fp": 18,
+      "fn": 28,
+      "mappedRecords": 28,
+      "precision": 10,
+      "recall": 0
+    },
+    {
+      "ruleId": "cc-identifier-dropped",
+      "checkId": "context-carried",
+      "firedRecords": 2,
+      "findings": 7,
+      "tp": 0,
+      "fp": 2,
+      "fn": 28,
+      "mappedRecords": 28,
+      "precision": 0,
+      "recall": 0
+    },
+    {
+      "ruleId": "cc-negation-dropped",
+      "checkId": "context-carried",
+      "firedRecords": 1,
+      "findings": 5,
+      "tp": 0,
+      "fp": 1,
+      "fn": 28,
+      "mappedRecords": 28,
+      "precision": 0,
+      "recall": 0
+    },
+    {
+      "ruleId": "cc-report-dropped",
+      "checkId": "context-carried",
+      "firedRecords": 0,
+      "findings": 0,
+      "tp": 0,
+      "fp": 0,
+      "fn": 28,
+      "mappedRecords": 28,
+      "precision": null,
+      "recall": 0
+    },
+    {
+      "ruleId": "dup-cross-thread",
+      "checkId": "no-duplicate-work",
+      "firedRecords": 4,
+      "findings": 4,
+      "tp": 1,
+      "fp": 3,
+      "fn": 2,
+      "mappedRecords": 3,
+      "precision": 25,
+      "recall": 33.3
+    },
+    {
+      "ruleId": "dup-same-thread",
+      "checkId": "no-duplicate-work",
+      "firedRecords": 0,
+      "findings": 0,
+      "tp": 0,
+      "fp": 0,
+      "fn": 3,
+      "mappedRecords": 3,
+      "precision": null,
+      "recall": 0
+    },
+    {
+      "ruleId": "dup-after-report",
+      "checkId": "no-duplicate-work",
+      "firedRecords": 0,
+      "findings": 0,
+      "tp": 0,
+      "fp": 0,
+      "fn": 3,
+      "mappedRecords": 3,
+      "precision": null,
+      "recall": 0
+    },
+    {
+      "ruleId": "route-tool-not-held",
+      "checkId": "routing",
+      "firedRecords": 0,
+      "findings": 0,
+      "tp": 0,
+      "fp": 0,
+      "fn": 29,
+      "mappedRecords": 29,
+      "precision": null,
+      "recall": 0
+    },
+    {
+      "ruleId": "route-target-lacks-tool",
+      "checkId": "routing",
+      "firedRecords": 0,
+      "findings": 0,
+      "tp": 0,
+      "fp": 0,
+      "fn": 29,
+      "mappedRecords": 29,
+      "precision": null,
+      "recall": 0
+    },
+    {
+      "ruleId": "route-coordinator-did-it",
+      "checkId": "routing",
+      "firedRecords": 0,
+      "findings": 0,
+      "tp": 0,
+      "fp": 0,
+      "fn": 29,
+      "mappedRecords": 29,
+      "precision": null,
+      "recall": 0
+    },
+    {
+      "ruleId": "term-orphan-thread",
+      "checkId": "termination",
+      "firedRecords": 1,
+      "findings": 1,
+      "tp": 0,
+      "fp": 1,
+      "fn": 57,
+      "mappedRecords": 57,
+      "precision": 0,
+      "recall": 0
+    },
+    {
+      "ruleId": "term-finished-early",
+      "checkId": "termination",
+      "firedRecords": 0,
+      "findings": 0,
+      "tp": 0,
+      "fp": 0,
+      "fn": 57,
+      "mappedRecords": 57,
+      "precision": null,
+      "recall": 0
+    },
+    {
+      "ruleId": "term-late-report",
+      "checkId": "termination",
+      "firedRecords": 0,
+      "findings": 0,
+      "tp": 0,
+      "fp": 0,
+      "fn": 57,
+      "mappedRecords": 57,
+      "precision": null,
+      "recall": 0
+    },
+    {
+      "ruleId": "term-terminated-without-reason",
+      "checkId": "termination",
+      "firedRecords": 0,
+      "findings": 0,
+      "tp": 0,
+      "fp": 0,
+      "fn": 57,
+      "mappedRecords": 57,
+      "precision": null,
+      "recall": 0
+    },
+    {
+      "ruleId": "perm-escalation-bypassed",
+      "checkId": "permission-continuity",
+      "firedRecords": 0,
+      "findings": 0,
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "mappedRecords": 0,
+      "precision": null,
+      "recall": null
+    },
+    {
+      "ruleId": "perm-deny-retried",
+      "checkId": "permission-continuity",
+      "firedRecords": 0,
+      "findings": 0,
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "mappedRecords": 0,
+      "precision": null,
+      "recall": null
+    },
+    {
+      "ruleId": "perm-deny-renamed",
+      "checkId": "permission-continuity",
+      "firedRecords": 0,
+      "findings": 0,
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "mappedRecords": 0,
+      "precision": null,
+      "recall": null
+    },
+    {
+      "ruleId": "perm-ask-reused",
+      "checkId": "permission-continuity",
+      "firedRecords": 0,
+      "findings": 0,
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "mappedRecords": 0,
+      "precision": null,
+      "recall": null
+    }
+  ],
+  "stepHitExamples": [
+    {
+      "id": "Hand-Crafted/20",
+      "ruleId": "cc-numeric-dropped",
+      "reason": "WebSurfer's inability to reliably access the requested documents resulted in the overall task failure, as the necessary time span data could"
+    },
+    {
+      "id": "Hand-Crafted/32",
+      "ruleId": "cc-numeric-dropped",
+      "reason": "It provides incorrect instructions."
+    },
+    {
+      "id": "Algorithm-Generated/126",
+      "ruleId": "dup-cross-thread",
+      "reason": "The CorporateHistory_IPOs_MondayCom_Expert repeatedly writes incorrect code and provides inaccurate information in step 5, leading to a fals"
+    }
+  ],
+  "falsePositiveSamples": {
+    "cc-numeric-dropped": [
+      {
+        "id": "Hand-Crafted/2",
+        "message": "Upstream says \"1 season\". The delegation to WebSurfer is about the same thing but does not carry 1: \"Please search for a list of series that Ted Danson has star"
+      },
+      {
+        "id": "Hand-Crafted/8",
+        "message": "Upstream says \"$7.5\". The delegation to WebSurfer is about the same thing but does not carry 7.5: \"Please search for verified business articles, financial news "
+      },
+      {
+        "id": "Hand-Crafted/10",
+        "message": "Upstream says \"under $15\". The delegation to WebSurfer is about the same thing but does not carry 15: \"Conduct a search for the specific prices of ready-to-eat "
+      }
+    ],
+    "cc-identifier-dropped": [
+      {
+        "id": "Hand-Crafted/2",
+        "message": "Upstream names TV-14. The delegation to WebSurfer talks about it without naming it: \"Please find a comprehensive list of TV series starring Ted Danson on IMDb a"
+      },
+      {
+        "id": "Hand-Crafted/7",
+        "message": "Upstream names https://www.youtube.com/watch?v=L1vXCYZAYYM. The delegation to WebSurfer talks about it without naming it: \"Please open the YouTube video at the "
+      }
+    ],
+    "cc-negation-dropped": [
+      {
+        "id": "Hand-Crafted/14",
+        "message": "Upstream says \"What percentage of the total penguin population according to the upper estimates on engli…\". The delegation to WebSurfer is about the same thing "
+      }
+    ],
+    "term-orphan-thread": [
+      {
+        "id": "Hand-Crafted/45",
+        "message": "Assistant was delegated to and never reported back or was terminated."
+      }
+    ],
+    "dup-cross-thread": [
+      {
+        "id": "Algorithm-Generated/87",
+        "message": "Music_Critic_Expert and DataVerification_Expert both called code {\"code\":\"Harbinger\"}."
+      },
+      {
+        "id": "Algorithm-Generated/88",
+        "message": "DataValidation_Expert and Verification_Expert both called python {\"code\":\"import pandas as pd\\n\\n# Assuming the file 'apple_stock_data.csv' is in the curr…."
+      },
+      {
+        "id": "Algorithm-Generated/104",
+        "message": "Validation_Expert and PythonDebugging_Expert both called python {\"code\":\"# filename: debug_template_specific.py\\nimport sys\\n\\ndef main():\\n try:\\n print…."
+      }
+    ]
+  }
+}

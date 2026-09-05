@@ -1,0 +1,28 @@
+{
+  "synthetic": true,
+  "note": "Declared tools per agent name, copied from agent-submit's managed variant (packages/managed-variant/src/agent.ts). The coordinator declares no tools. submit_requisition is declared on nobody; that absence is the tier D control.",
+  "agents": {
+    "agent-submit requisition drafter (single)": ["catalog_lookup", "supplier_check", "threshold_policy", "draft_requisition", "update_draft_field", "escalate_to_buyer"],
+    "agent-submit drafter": ["catalog_lookup", "threshold_policy", "draft_requisition", "update_draft_field"],
+    "agent-submit supplier checker": ["supplier_check", "escalate_to_buyer"],
+    "agent-submit coordinator": []
+  },
+  "capabilities": {
+    "catalog_lookup": ["look up the item", "look up the standard", "catalog item", "look up the catalog", "search the catalog"],
+    "supplier_check": ["supplier approval", "approved supplier", "verify the supplier", "check the supplier", "supplier list", "supplier is approved", "validate the supplier", "supplier check", "supplier validation", "verify that sup"],
+    "threshold_policy": ["threshold", "policy"],
+    "draft_requisition": ["create a draft", "draft requisition", "create the draft", "draft a requisition", "requisition draft"],
+    "update_draft_field": ["update the draft", "change the draft", "edit the draft", "set the field", "update the justification", "add the justification"],
+    "escalate_to_buyer": ["route to the buyer", "route this draft", "route the draft", "escalate", "buyer review", "buyer decision", "send to the buyer"],
+    "submit_requisition": ["submit"]
+  },
+  "toolKinds": {
+    "catalog_lookup": "read",
+    "supplier_check": "read",
+    "threshold_policy": "read",
+    "draft_requisition": "write",
+    "update_draft_field": "write",
+    "escalate_to_buyer": "write",
+    "submit_requisition": "write"
+  }
+}

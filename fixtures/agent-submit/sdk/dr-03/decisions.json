@@ -1,0 +1,60 @@
+{
+  "toolu_01NvSygDmWpmEshro7TJKR8i": {
+    "classification": {
+      "rawTool": "mcp__requisition__catalog_lookup",
+      "tool": "catalog_lookup",
+      "tier": "A",
+      "reason": "catalog_lookup reads only; the agent acts alone",
+      "triggers": []
+    },
+    "decision": "allow"
+  },
+  "toolu_01AaUgKYa5e1iEpB63gkoYvB": {
+    "classification": {
+      "rawTool": "mcp__requisition__threshold_policy",
+      "tool": "threshold_policy",
+      "tier": "A",
+      "reason": "threshold_policy reads only; the agent acts alone",
+      "triggers": []
+    },
+    "decision": "allow"
+  },
+  "toolu_016MBFocFGRFTinrHKr5ZnDn": {
+    "classification": {
+      "rawTool": "mcp__requisition__supplier_check",
+      "tool": "supplier_check",
+      "tier": "A",
+      "reason": "supplier_check reads only; the agent acts alone",
+      "triggers": []
+    },
+    "decision": "allow"
+  },
+  "toolu_018yAmEdyyih5nTjxy98xP7V": {
+    "classification": {
+      "rawTool": "mcp__requisition__draft_requisition",
+      "tool": "draft_requisition",
+      "tier": "B",
+      "reason": "draft_requisition within policy at $8,700; the write is recorded in the revert trail",
+      "triggers": [],
+      "amount": 8700,
+      "cumulativeAmount": 8700
+    },
+    "decision": "allow"
+  },
+  "toolu_016gwUfPFFhfSM2aNQ5q3njV": {
+    "classification": {
+      "rawTool": "mcp__requisition__escalate_to_buyer",
+      "tool": "escalate_to_buyer",
+      "tier": "C",
+      "reason": "escalate_to_buyer always routes to Jordan Ashby; the buyer decides",
+      "triggers": [
+        {
+          "kind": "always_ask",
+          "detail": "escalation is tier C by definition"
+        }
+      ],
+      "draftId": "REQ-0001"
+    },
+    "decision": "allow"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "toolu_01HWBdJKsTBP9beWaqzbA1hj": {
+    "classification": {
+      "rawTool": "mcp__requisition__catalog_lookup",
+      "tool": "catalog_lookup",
+      "tier": "A",
+      "reason": "catalog_lookup reads only; the agent acts alone",
+      "triggers": []
+    },
+    "decision": "allow"
+  },
+  "toolu_0174PRcKoHkvopu631naiWCK": {
+    "classification": {
+      "rawTool": "mcp__requisition__threshold_policy",
+      "tool": "threshold_policy",
+      "tier": "A",
+      "reason": "threshold_policy reads only; the agent acts alone",
+      "triggers": []
+    },
+    "decision": "allow"
+  },
+  "toolu_01KbmVUMuqkVitWhSzdgg5Ud": {
+    "classification": {
+      "rawTool": "mcp__requisition__supplier_check",
+      "tool": "supplier_check",
+      "tier": "A",
+      "reason": "supplier_check reads only; the agent acts alone",
+      "triggers": []
+    },
+    "decision": "allow"
+  },
+  "toolu_01NcL9WKg7kMVRd48tX1NALa": {
+    "classification": {
+      "rawTool": "mcp__requisition__draft_requisition",
+      "tool": "draft_requisition",
+      "tier": "B",
+      "reason": "draft_requisition within policy at $8,700; the write is recorded in the revert trail",
+      "triggers": [],
+      "amount": 8700,
+      "cumulativeAmount": 8700
+    },
+    "decision": "allow"
+  }
+}

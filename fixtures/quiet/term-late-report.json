@@ -1,0 +1,14 @@
+{
+  "id": "term-late-report-quiet",
+  "synthetic": true,
+  "primaryThreadId": "t0",
+  "threads": [{"id":"t0","agentName":"coordinator","parentId":null,"tools":[]},{"id":"t1","agentName":"drafter","parentId":"t0","tools":["catalog_lookup","threshold_policy","draft_requisition","update_draft_field"]},{"id":"t2","agentName":"checker","parentId":"t0","tools":["supplier_check","escalate_to_buyer"]}],
+  "toolKinds": {"catalog_lookup":"read","supplier_check":"read","threshold_policy":"read","draft_requisition":"write","update_draft_field":"write","escalate_to_buyer":"write","submit_requisition":"write","finalize_requisition":"write"},
+  "capabilities": {"draft_requisition":["create a draft","draft requisition"],"supplier_check":["check the supplier","verify the supplier"],"submit_requisition":["submit"],"catalog_lookup":["catalog"]},
+  "events": [
+    {"id":"e1","threadId":"t0","kind":"delegation","to":"t1","content":"Draft 8 laptops for Denver and report the draft id."},
+    {"id":"e2","threadId":"t0","kind":"report","from":"t1","content":"Draft REQ-0001 created, total $11,600."},
+    {"id":"e3","threadId":"t0","kind":"message","content":"Draft REQ-0001 is ready at $11,600."},
+    {"id":"e4","threadId":"t0","kind":"session_end","stopReason":"end_turn"}
+  ]
+}

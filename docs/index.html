@@ -1,0 +1,729 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Did My Agents Hand Off? A Product Teardown</title>
+    <meta
+      name="description"
+      content="The thinking behind a deterministic, no-model scorer for multi-agent traces: five checks, 18 explainable rules that cite their events, results on 121 recorded runs, a calibration against a public labeled set that came back null, and what a judge catches that rules cannot."
+    />
+    <meta name="author" content="Roanuk Zaman" />
+    <meta property="article:author" content="Roanuk Zaman" />
+    <meta property="og:title" content="Did My Agents Hand Off? A Product Teardown" />
+    <meta
+      property="og:description"
+      content="When a multi-agent run fails, the trace shows what happened but not where the handoff broke. Five deterministic checks that name the two events, scored on 121 runs and calibrated against 184 labeled failures. The calibration came back null, and that is the finding."
+    />
+    <meta property="og:url" content="https://roanukz.github.io/agent-handoff/" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Roanuk Zaman" />
+    <!-- Share card. og-image.png is rendered from og-image.svg in this folder and
+         served from the same origin. Edit the SVG, never the PNG. -->
+    <meta property="og:image" content="https://roanukz.github.io/agent-handoff/og-image.png" />
+    <meta property="og:image:width" content="2400" />
+    <meta property="og:image:height" content="1254" />
+    <meta
+      property="og:image:alt"
+      content="Did My Agents Hand Off? A card showing three agent threads passing a task along, with one constraint falling out of the message between them."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://roanukz.github.io/agent-handoff/og-image.png" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='16' fill='%231f6379'/%3E%3Ctext x='50' y='70' font-size='56' text-anchor='middle' fill='white' font-family='sans-serif'%3E%3F%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <nav class="topbar" aria-label="Site">
+      <div class="wrap">
+        <a href="tool.html">Try the tool &rarr;</a>
+        <a href="https://github.com/Roanukz/agent-handoff">View source</a>
+      </div>
+    </nav>
+
+    <header class="hero">
+      <div class="wrap">
+        <p class="eyebrow">Product teardown</p>
+        <h1>Did My Agents Hand Off?</h1>
+        <p class="lede">
+          When a multi-agent run fails, the trace shows what happened but not
+          where the handoff broke. The published way to find out is to have a
+          model read the trace, which costs money, changes its mind between runs,
+          and cannot tell the person fixing the prompt which two lines to look at.
+          This is a scorer that runs fixed rules instead: five checks, 18 rules,
+          every finding naming the events it fired on. It was run on 121 recorded
+          runs and calibrated against 184 labeled failures. The calibration came
+          back null. This is the thinking behind it, and behind publishing that.
+        </p>
+        <p class="byline">
+          Roanuk Zaman &middot; Product teardown of a tool I designed, directed
+          and shipped
+        </p>
+
+        <div class="cta-row">
+          <a class="btn btn-primary" href="tool.html">Try the tool &rarr;</a>
+          <a class="btn btn-secondary" href="https://github.com/Roanukz/agent-handoff">View the source</a>
+        </div>
+
+        <div class="facts">
+          <div class="fact">
+            <span class="fact-value">18 rules</span>
+            <span class="fact-label"
+              >Across five checks. Each rule has a fixture that fires it and a
+              fixture that must not, and each finding cites the event ids it
+              compared</span
+            >
+          </div>
+          <div class="fact">
+            <span class="fact-value">121 runs</span>
+            <span class="fact-label"
+              >From agent-submit and its Managed Agents variant, scored without
+              error. Nine findings, all of them things a reader can check against
+              two lines of the trace</span
+            >
+          </div>
+          <div class="fact">
+            <span class="fact-value">3 of 184</span>
+            <span class="fact-label"
+              >Labeled failing steps that a rule cited on the public set, 2%,
+              below the 4.5% a random pick would score. Published because it is
+              the result</span
+            >
+          </div>
+          <div class="fact">
+            <span class="fact-value">0</span>
+            <span class="fact-label"
+              >Model calls, in the page, the CLI, the tests and the calibration.
+              The page enforces it with a Content Security Policy rather than a
+              promise</span
+            >
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="wrap layout">
+      <nav class="toc" aria-label="Contents">
+        <p class="toc-title">Contents</p>
+        <ol>
+          <li><a href="#tldr">Summary</a></li>
+          <li><a href="#why-rules">1. Why rules and not a judge</a></li>
+          <li><a href="#checks">2. Five checks and the rule catalog</a></li>
+          <li><a href="#formats">3. Two trace formats and what each lacks</a></li>
+          <li><a href="#corpus">4. What the agent-submit traces show</a></li>
+          <li><a href="#calibration">5. Calibration against a public labeled set</a></li>
+          <li><a href="#false-positives">6. False positives</a></li>
+          <li><a href="#judge">7. What a judge catches that rules cannot</a></li>
+          <li><a href="#not-built">8. What I did not build</a></li>
+          <li><a href="#limits">9. Limits</a></li>
+        </ol>
+      </nav>
+
+      <main id="main" tabindex="-1">
+        <section id="tldr" class="tldr">
+          <p class="section-kicker">The short version</p>
+          <h2>Summary</h2>
+          <ul>
+            <li>
+              <strong>A handoff failure is a comparison between two events.</strong>
+              The request said 8 laptops and the delegation did not; the drafter
+              reported SUP-003 and the next message talked about "the supplier";
+              the checker was asked to draft; a thread was still running when the
+              answer went out; a write held for a buyer in one thread executed in
+              another with no decision. Each of those is a rule that reads two
+              lines, and each finding shows the two lines (<a href="#checks">Part 2</a>).
+            </li>
+            <li>
+              <strong>The format decides what a rule can see.</strong> The Agent
+              SDK record keeps names, tiers and decisions but no arguments for
+              reads and only one thread. The Managed Agents session stream carries
+              a child thread's tool calls only when they were cross-posted to the
+              client, and never its messages, so context checks need the
+              per-thread streams. Neither format lists an agent's tools, so
+              routing needs a roster. A rule that cannot run says so instead of
+              scoring 100 (<a href="#formats">Part 3</a>).
+            </li>
+            <li>
+              <strong>On 121 recorded runs the rules fired nine times.</strong>
+              Five of the nine are one thread creating the same draft three or
+              four times in a row, which is a decomposition attempt wearing the
+              costume of duplicate work. One is a coordinator asking the supplier
+              checker for a lookup it does not have. One is a buyer's deny
+              followed by the same draft executing with no decision recorded
+              (<a href="#corpus">Part 4</a>).
+            </li>
+            <li>
+              <strong>Against the public labeled set the rules are at chance.</strong>
+              Three of 184 labeled steps cited, below the random baseline. The
+              labels describe wrong actions: a surfer clicking an irrelevant site,
+              an expert writing wrong code, an orchestrator concluding on too
+              little. 91 of the 184 reasons name nothing any handoff check asks
+              about, and the logs have no tool arguments, no thread lifecycle and
+              no permissions for the rest (<a href="#calibration">Part 5</a>).
+            </li>
+            <li>
+              <strong>The null result is the product's boundary, drawn with data.</strong>
+              Rules find structural breaks in a handoff. Whether the surfer chose
+              the right link is a judgment about relevance, and that is what a
+              judge is for (<a href="#judge">Part 7</a>).
+            </li>
+          </ul>
+        </section>
+
+        <section id="why-rules">
+          <p class="section-kicker">Part 1</p>
+          <h2>Why rules and not a judge</h2>
+          <p>
+            Failure attribution in multi-agent systems is an active research field
+            with labeled datasets. The Who&amp;When paper (Zhang et al., ICML 2025)
+            hand-annotated 184 failed runs with the agent and the step responsible,
+            then asked reasoning models to find them. The best method reached
+            53.5% at the agent level and 14.2% at the step level. AgenTracer
+            trained an 8B model to do the reading. Who&amp;When Pro scaled the
+            benchmark to 12,326 trajectories. TraceElephant showed that giving the
+            reader the full trace rather than a summary raises accuracy by up to
+            76%.
+          </p>
+          <p>
+            All of that puts a model between the trace and the person who has to
+            act on it. For a product manager reviewing fifty runs on a Monday, a
+            model's verdict has three costs. It is billed per trace. It is not
+            deterministic, so the same run can score differently tomorrow. And it
+            arrives as prose: "the coordinator failed to convey the constraint,"
+            which is not a line number.
+          </p>
+          <p>
+            The commercial trace tools do not close the gap. Langfuse, LangSmith,
+            Braintrust and AgentOps each offer a place to run a rule you wrote
+            yourself, and LangSmith's agentevals ships deterministic trajectory
+            matchers, but those need a reference trajectory and return a boolean.
+            None ships a rule that names a handoff failure and points to the step.
+            That check was the gate on this project, and its verdict with links is
+            the first entry in the repository's decision log.
+          </p>
+          <p>
+            So the thesis is the same one as
+            <a href="https://roanukz.github.io/agent-answer/">Will My Agent Answer This?</a>:
+            fixed rules, weighted checks, a score that explains itself, and a
+            deliberately modest claim about what fixed rules can see. The
+            difference is the input. An article is one document. A run is a set of
+            threads passing messages, and the failures that matter live in the
+            messages between them.
+          </p>
+        </section>
+
+        <section id="checks">
+          <p class="section-kicker">Part 2</p>
+          <h2>Five checks and the rule catalog</h2>
+          <p>
+            Every parser produces the same internal model: threads, and events in
+            order, each with a thread, a kind (request, message, delegation,
+            report, tool call, tool result, decision, lifecycle), and whatever the
+            kind carries. Rules read that model and nothing else, so a rule that
+            fires on a Managed Agents stream fires identically on a Who&amp;When
+            log once the parser has done its work.
+          </p>
+          <div class="table-scroll">
+            <table>
+              <caption>The five checks and their weights. The weighting and the score arithmetic are reused unchanged from agent-answer.</caption>
+              <thead>
+                <tr><th>Check</th><th>Weight</th><th>What it asks of the trace</th></tr>
+              </thead>
+              <tbody>
+                <tr><th>Context carried</th><td class="num">25%</td><td>Do the constraints stated upstream, counts, caps, identifiers and prohibitions, survive the delegation and the first call that should carry them?</td></tr>
+                <tr><th>No duplicate work</th><td class="num">15%</td><td>Does a thread repeat a call another thread already made, or its own, with the same arguments and nothing changed in between?</td></tr>
+                <tr><th>Routing</th><td class="num">20%</td><td>Did each task go to a thread whose declared tools can do it, and did the coordinator then leave it there?</td></tr>
+                <tr><th>Termination</th><td class="num">20%</td><td>Did every delegated thread report back or get stopped with a reason before the final answer went out?</td></tr>
+                <tr><th>Permission continuity</th><td class="num">20%</td><td>Does an ask or a deny recorded on one thread hold on the next?</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Each check starts at 100. A major finding costs 25, a minor 10, and
+            only the first three findings from one rule count. The overall score
+            is the weighted average, and no run is handed off cleanly with any
+            check below 60, because an average is exactly the thing that hides one
+            collapsed dimension. What is new here is the silent state. A rule that
+            cannot run on a trace, because the trace has one thread, or no tool
+            arguments, or no roster, or no recorded decision, is listed as silent
+            with its reason. Silent is not clean, and the report says which.
+          </p>
+          <div class="table-scroll">
+            <table>
+              <caption>The 18 rules. "Needs" is what the trace has to contain for the rule to run at all. Every rule ships with a synthetic fixture that fires it and a near miss that must not, and the test suite fails if either is missing.</caption>
+              <thead>
+                <tr><th>Rule</th><th>Fires when</th><th>Severity</th><th>Needs</th></tr>
+              </thead>
+              <tbody>
+                <tr><th colspan="4">Context carried</th></tr>
+                <tr><td><code>cc-numeric-dropped</code></td><td>A count, amount or cap stated upstream is absent from a delegation about the same subject, or a count in the delegation is absent from the first downstream call that carries a number about it.</td><td>major</td><td>a delegation</td></tr>
+                <tr><td><code>cc-identifier-dropped</code></td><td>An identifier named upstream is absent from a delegation that talks about that kind of thing. SUP-003 is a supplier because its family says so; "the supplier" without it is the finding.</td><td>major</td><td>a delegation</td></tr>
+                <tr><td><code>cc-negation-dropped</code></td><td>A "do not" stated upstream is absent from a delegation about the same subject, or the thing it forbade reappears downstream with the "do not" gone.</td><td>major</td><td>a delegation</td></tr>
+                <tr><td><code>cc-report-dropped</code></td><td>A later delegation names an identifier from a report and drops another identifier the report stated beside it.</td><td>minor</td><td>a report, then a delegation</td></tr>
+                <tr><th colspan="4">No duplicate work</th></tr>
+                <tr><td><code>dup-cross-thread</code></td><td>Two threads called the same tool with deep-equal arguments. Major when the tool writes.</td><td>minor</td><td>tool arguments</td></tr>
+                <tr><td><code>dup-same-thread</code></td><td>One thread made the same read or write twice, the first did not fail, and no write happened between them. Browser clicks and scrolls are not judged; only tools known to read or write.</td><td>minor</td><td>tool arguments</td></tr>
+                <tr><td><code>dup-after-report</code></td><td>A thread made a call, reported back, and the receiving thread then made the same call itself.</td><td>minor</td><td>tool arguments</td></tr>
+                <tr><th colspan="4">Routing</th></tr>
+                <tr><td><code>route-tool-not-held</code></td><td>A delegation names a tool, by name or by a phrase that means it, that the receiving agent does not declare. Sentences that are negated, or in which the sender says what it will do itself, are skipped.</td><td>major</td><td>a delegation and a roster</td></tr>
+                <tr><td><code>route-target-lacks-tool</code></td><td>A thread reports back that it lacks the tool, access or ability the task needed.</td><td>major</td><td>a report</td></tr>
+                <tr><td><code>route-coordinator-did-it</code></td><td>After delegating a task, the delegating thread called the tool that task needed.</td><td>minor</td><td>a delegation</td></tr>
+                <tr><th colspan="4">Termination</th></tr>
+                <tr><td><code>term-orphan-thread</code></td><td>A thread was created or delegated to and neither reported back nor was terminated.</td><td>major</td><td>a child thread</td></tr>
+                <tr><td><code>term-finished-early</code></td><td>The coordinator gave its final answer while a child thread's last lifecycle event was "running".</td><td>major</td><td>lifecycle events</td></tr>
+                <tr><td><code>term-late-report</code></td><td>A report arrived after the final answer, or after the session ended.</td><td>major</td><td>a child thread</td></tr>
+                <tr><td><code>term-terminated-without-reason</code></td><td>A thread that never reported back was terminated and no reason was recorded.</td><td>minor</td><td>a child thread</td></tr>
+                <tr><th colspan="4">Permission continuity</th></tr>
+                <tr><td><code>perm-escalation-bypassed</code></td><td>A call was held for a human decision in one thread, and the same call executed in another thread with no decision of its own.</td><td>major</td><td>recorded decisions</td></tr>
+                <tr><td><code>perm-deny-retried</code></td><td>A denied call was made again with the same arguments and executed, without being held again.</td><td>major</td><td>recorded decisions</td></tr>
+                <tr><td><code>perm-deny-renamed</code></td><td>A call was denied, and a differently named tool with the same arguments then executed.</td><td>major</td><td>recorded decisions</td></tr>
+                <tr><td><code>perm-ask-reused</code></td><td>An ask answered in one thread was reused as approval for a different call to the same tool in another thread.</td><td>major</td><td>recorded decisions</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            The permission rules are the ones that connect back to
+            <a href="https://roanukz.github.io/agent-submit/">Should My Agent Submit This?</a>.
+            That project enforced four permission tiers in one thread. These four
+            rules ask whether a tier decision made in one thread is honored in the
+            next, which is the question a second agent raises the moment it exists.
+          </p>
+          <p>
+            One design choice runs through all of them: a finding cites at least
+            two event ids wherever a comparison is involved. "Step 14 dropped the
+            supplier" is an accusation. "Event 9 said SUP-003; event 14 talks about
+            the supplier and does not" is a thing a reader can check in ten
+            seconds, and disagree with in eleven.
+          </p>
+        </section>
+
+        <section id="formats">
+          <p class="section-kicker">Part 3</p>
+          <h2>Two trace formats and what each lacks</h2>
+          <p>
+            The PRD asked for the rules to run unchanged across the agent-submit
+            hook log and the Managed Agents thread stream. The first surprise was
+            that agent-submit has no hook log. Its hooks write to stderr; what it
+            persists per session is a decisions file (the tier classification and
+            decision per tool-use id, in call order) and a trail (decision lines
+            with reasons, and one line per write with before and after). That is
+            what the SDK parser reads.
+          </p>
+          <div class="table-scroll">
+            <table>
+              <caption>What each format carries, and therefore which rules can run on it. A third format, the Who&amp;When labeled set, is in Part 5.</caption>
+              <thead>
+                <tr><th>Format</th><th>Threads</th><th>Tool arguments</th><th>Delegations and reports</th><th>Lifecycle</th><th>Decisions</th><th>Declared tools</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>Agent SDK record (agent-submit)</th>
+                  <td>One</td>
+                  <td>Writes only, from the trail's payload. Reads leave a name and a tier</td>
+                  <td>None</td>
+                  <td>None</td>
+                  <td>Every call, with tier and buyer outcome</td>
+                  <td>Not recorded</td>
+                </tr>
+                <tr>
+                  <th>Managed Agents session stream</th>
+                  <td>Primary plus one stream per child</td>
+                  <td>Every custom tool call, with input and result</td>
+                  <td>On the primary stream as sent and received; mirrored on the child's stream</td>
+                  <td>Created, running, idle with a stop reason, terminated</td>
+                  <td>Not in the stream. The client that answered the call has them; the variant wrote them to a results file the parser joins</td>
+                  <td>Not in the stream. A roster file supplies them</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            The Managed Agents primary stream carries a child thread's tool calls
+            only because the client executes them: each call is cross-posted to
+            the session-level stream with the originating thread's id so the client
+            can answer it. The child's own messages never appear there. So a
+            context check that compares what the drafter was told with what it
+            said back needs the per-thread streams, and a trace that has only the
+            primary stream is scored with a note saying that a child appears
+            through its tool calls, not its words.
+          </p>
+          <p>
+            The SDK corpus is a control. Every run is one thread, so eleven of the
+            18 rules are silent on it by construction, and the record keeps no
+            arguments for reads, so the duplicate-work rules are silent on a run
+            that only read. The one check the SDK record exercises fully is
+            permission continuity: a defer, a buyer's decision, an allow, on the
+            same tool-use id. That is why it is kept.
+          </p>
+          <div class="callout callout-notice">
+            <h4>Silent, counted</h4>
+            <p>
+              On the 97 single-agent Managed Agents runs, the eleven cross-thread
+              rules were silent on all 97, the duplicate-work rules on the 15 runs
+              with no argument-bearing call, and the permission rules on the 16
+              with no recorded decision. The results file lists those counts per
+              rule and per group, because a page that reported "97 clean runs"
+              would be reporting the format, not the runs.
+            </p>
+          </div>
+        </section>
+
+        <section id="corpus">
+          <p class="section-kicker">Part 4</p>
+          <h2>What the agent-submit traces show</h2>
+          <p>
+            121 runs: 9 SDK sessions, 97 Managed Agents single-agent sessions, and
+            15 Managed Agents coordinator sessions in which a coordinator delegated
+            to a drafter and a supplier checker. All synthetic procurement data with
+            a placeholder buyer. Every run parsed and scored without error, which
+            was the PRD's second success criterion and the easy one.
+          </p>
+          <div class="table-scroll">
+            <table>
+              <caption>Scores by group, from results/agent-submit.md. "Needs attention" is the band a run lands in when any check falls below 60.</caption>
+              <thead>
+                <tr><th>Group</th><th>Runs</th><th>Mean score</th><th>Runs with a finding</th><th>Handed off</th><th>Needs attention</th><th>Broke</th></tr>
+              </thead>
+              <tbody>
+                <tr><th>SDK control</th><td class="num">9</td><td class="num">100</td><td class="num">0</td><td class="num">9</td><td class="num">0</td><td class="num">0</td></tr>
+                <tr><th>Managed Agents, single agent</th><td class="num">97</td><td class="num">99.8</td><td class="num">3</td><td class="num">95</td><td class="num">2</td><td class="num">0</td></tr>
+                <tr><th>Managed Agents, coordinator plus roster</th><td class="num">15</td><td class="num">99.1</td><td class="num">3</td><td class="num">15</td><td class="num">0</td><td class="num">0</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Nine findings in total. They sort into four stories.</p>
+          <p>
+            <strong>Five are the same draft created repeatedly.</strong> In cases
+            dc-07 and dc-09 the single agent called
+            <code>draft_requisition</code> with identical arguments three and four
+            times in a row, each time under the single-draft threshold, until the
+            cumulative rule held the last one. <code>dup-same-thread</code> flags
+            each repeat as a major finding because the tool writes. That is the
+            right call for the wrong reason: the model was not confused, it was
+            splitting a purchase to stay under a threshold, and duplicate identical
+            writes are what a decomposition attempt looks like from outside. The
+            events cited are the consecutive calls, and each carries its tier and
+            decision, so the reader can see the fourth one deferred.
+          </p>
+          <p>
+            <strong>One is a task sent to an agent that could only say no.</strong>
+            In hp-02 the coordinator, holding a supplier's name and no id, asked the
+            supplier checker whether it had "access to a supplier directory or
+            name-to-ID lookup". The checker answered that its only tool is
+            <code>supplier_check</code>. <code>route-target-lacks-tool</code> cites
+            the delegation and the report. The roster-based rule did not fire, and
+            should not have: no agent declares a directory lookup, so there was no
+            right place to send it.
+          </p>
+          <p>
+            <strong>One is a deny followed by the same draft executing.</strong> In
+            tc-02 the buyer rejected the draft ("Denver is over budget this
+            quarter"). The agent then created the same draft again, and that call
+            has a successful result and no decision in the variant's results file.
+            <code>perm-deny-retried</code> cites both calls. Whether the second
+            call was in fact classified and allowed by the handler, or the results
+            file stopped recording after the deny, is not something the trace can
+            settle, and the finding says only what the trace shows: the retry
+            executed with no decision recorded.
+          </p>
+          <p>
+            <strong>Two are context findings on the coordinator runs, and both are
+            arguable.</strong> In hp-16 the request was for 12 lab glassware sets;
+            the delegation to the supplier checker named the item and the total but
+            not the count. In tc-05 the drafter reported three catalog items and a
+            supplier; the coordinator's next delegation to the drafter named the
+            chosen item and dropped the rest. A supplier check does not need a
+            quantity, and alternatives are supposed to be dropped once one is
+            chosen. Both findings are correct about what the messages contain and
+            uncertain about whether it mattered, which is the limit of a relevance
+            test that works by topic words. They stayed in, at the severities the
+            rules assign, because the alternative is a rule that guesses intent.
+          </p>
+          <p>
+            The two coordinator findings that did not survive to this page are
+            worth naming for what they taught. A catalog lookup was being blamed
+            for not carrying a quantity it could never take, and a unit price in a
+            drafter's report was being treated as a constraint the next delegation
+            had to repeat. Both were rule defects, fixed before any number here was
+            written; the rule catalog above describes the rules as they are, and
+            the decision log records the fixes.
+          </p>
+        </section>
+
+        <section id="calibration">
+          <p class="section-kicker">Part 5</p>
+          <h2>Calibration against a public labeled set</h2>
+          <p>
+            Who&amp;When has 184 failed runs with hand-written labels: the agent
+            responsible, the step, and a sentence of reason. 58 are hand-crafted
+            systems in the Magentic-One pattern, an orchestrator delegating to a
+            web surfer and others; 126 are algorithm-generated group chats of
+            experts sharing a code executor. The parser turns each history entry
+            into exactly one event, so a label on step 12 is a label on event
+            <code>step-12</code>, and a hit is a finding that cites it. The set is
+            fetched by a script rather than committed, because the records embed
+            task text from other benchmarks whose terms are not the repository's to
+            grant.
+          </p>
+          <div class="table-scroll">
+            <table>
+              <caption>Headline numbers, from results/calibration.md. A rule that picked one step per record at random would hit the labeled step 4.5% of the time, since a record has 22.2 steps on average.</caption>
+              <thead>
+                <tr><th>Measure</th><th>Value</th></tr>
+              </thead>
+              <tbody>
+                <tr><th>Records where some rule cites the labeled step</th><td class="num">3 of 184 (1.6%)</td></tr>
+                <tr><th>Records where some rule cites an event in the labeled agent's thread</th><td class="num">24 of 184 (13%)</td></tr>
+                <tr><th>Records with at least one finding</th><td class="num">27</td></tr>
+                <tr><th>Records where every rule was silent for lack of structure</th><td class="num">25</td></tr>
+                <tr><th>Findings per record</th><td class="num">0.6</td></tr>
+                <tr><th>Records whose reason names nothing a handoff check asks about</th><td class="num">91</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Precision and recall per rule need one more definition. The labels mark
+            the failing step, not the failure kind, so recall is measured against a
+            keyword map from the label's free-text reason to a check: "did not
+            include the criterion" maps to context carried, "should have let the
+            surfer scroll further" to termination, "repeated" to duplicate work.
+            The map is published in the results file and can be argued with. Under
+            it, 28 reasons map to context carried, 3 to duplicate work, 29 to
+            routing, 57 to termination, and none to permission continuity.
+          </p>
+          <div class="table-scroll">
+            <table>
+              <caption>Per rule. TP: fired and cited the labeled step. FP: fired elsewhere. FN: silent on a record whose reason maps to the rule's check. Precision is TP over records fired; recall is hits over mapped records. n/a means the denominator is zero.</caption>
+              <thead>
+                <tr><th>Rule</th><th>Records fired</th><th>TP</th><th>FP</th><th>FN</th><th>Mapped</th><th>Precision</th><th>Recall</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>cc-numeric-dropped</code></td><td class="num">20</td><td class="num">2</td><td class="num">18</td><td class="num">28</td><td class="num">28</td><td class="num">10%</td><td class="num">0%</td></tr>
+                <tr><td><code>cc-identifier-dropped</code></td><td class="num">2</td><td class="num">0</td><td class="num">2</td><td class="num">28</td><td class="num">28</td><td class="num">0%</td><td class="num">0%</td></tr>
+                <tr><td><code>cc-negation-dropped</code></td><td class="num">1</td><td class="num">0</td><td class="num">1</td><td class="num">28</td><td class="num">28</td><td class="num">0%</td><td class="num">0%</td></tr>
+                <tr><td><code>cc-report-dropped</code></td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">28</td><td class="num">28</td><td class="num">n/a</td><td class="num">0%</td></tr>
+                <tr><td><code>dup-cross-thread</code></td><td class="num">4</td><td class="num">1</td><td class="num">3</td><td class="num">2</td><td class="num">3</td><td class="num">25%</td><td class="num">33%</td></tr>
+                <tr><td><code>dup-same-thread</code></td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">3</td><td class="num">3</td><td class="num">n/a</td><td class="num">0%</td></tr>
+                <tr><td><code>dup-after-report</code></td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">3</td><td class="num">3</td><td class="num">n/a</td><td class="num">0%</td></tr>
+                <tr><td><code>route-tool-not-held</code></td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">29</td><td class="num">29</td><td class="num">n/a</td><td class="num">0%</td></tr>
+                <tr><td><code>route-target-lacks-tool</code></td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">29</td><td class="num">29</td><td class="num">n/a</td><td class="num">0%</td></tr>
+                <tr><td><code>route-coordinator-did-it</code></td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">29</td><td class="num">29</td><td class="num">n/a</td><td class="num">0%</td></tr>
+                <tr><td><code>term-orphan-thread</code></td><td class="num">1</td><td class="num">0</td><td class="num">1</td><td class="num">57</td><td class="num">57</td><td class="num">0%</td><td class="num">0%</td></tr>
+                <tr><td><code>term-finished-early</code></td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">57</td><td class="num">57</td><td class="num">n/a</td><td class="num">0%</td></tr>
+                <tr><td><code>term-late-report</code></td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">57</td><td class="num">57</td><td class="num">n/a</td><td class="num">0%</td></tr>
+                <tr><td><code>term-terminated-without-reason</code></td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">57</td><td class="num">57</td><td class="num">n/a</td><td class="num">0%</td></tr>
+                <tr><td><code>perm-escalation-bypassed</code></td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">n/a</td><td class="num">n/a</td></tr>
+                <tr><td><code>perm-deny-retried</code></td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">n/a</td><td class="num">n/a</td></tr>
+                <tr><td><code>perm-deny-renamed</code></td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">n/a</td><td class="num">n/a</td></tr>
+                <tr><td><code>perm-ask-reused</code></td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">n/a</td><td class="num">n/a</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Read the table for what it says about the data before what it says
+            about the rules. The permission rules have nothing to measure: no
+            Who&amp;When failure is a permission failure, because those systems have
+            no permission model. The termination rules have 57 mapped records and
+            nothing to read: the logs carry no lifecycle events, and an
+            orchestrator's last thought before a log stops is not a final answer,
+            so the rule that would fire on "concluded while a thread was still
+            working" cannot tell that from "the log ended". The routing rules have
+            29 mapped records and no roster, no reports of the form "I do not have
+            a tool for that", and delegations that name web pages rather than
+            tools.
+          </p>
+          <p>
+            The one rule with any signal is <code>dup-cross-thread</code>, which
+            caught a verification expert re-running the exact code a data expert
+            had already run, in a record labeled for exactly that. One hit in three
+            mapped records, and three false positives in group chats where two
+            experts ran the same code on purpose. That is not calibration. That is
+            one anecdote and a warning.
+          </p>
+          <p>
+            The hand-crafted half and the generated half behave differently, and
+            the difference is structure. The 58 orchestrator logs have delegations
+            and reports, so the context rules can run, and 21 of 58 records got a
+            finding somewhere in the labeled agent's thread. The 126 group chats
+            have no delegations at all; 25 of them had no code block either, and on
+            those every rule was silent. A group chat is a room, not a handoff.
+          </p>
+        </section>
+
+        <section id="false-positives">
+          <p class="section-kicker">Part 6</p>
+          <h2>False positives</h2>
+          <p>
+            The false positives that remain sort into three classes, and each is a
+            statement about what a text rule cannot know.
+          </p>
+          <p>
+            <strong>A figure is not a constraint just because it is a figure.</strong>
+            <code>cc-numeric-dropped</code> is responsible for 18 of the 27 false
+            positive records on the public set. "The show ran 1 season" is a count;
+            "under $15" in a question about lunch prices is a cap; both appeared
+            upstream and were absent from a delegation about the same subject, and
+            neither was something the surfer needed to be told. The rule reads a
+            number with a noun as a requirement. The request usually means it as
+            one, which is why the rule exists. A question often does not.
+          </p>
+          <p>
+            <strong>A token shaped like an identifier is not always one.</strong>
+            "TV-14" is a content rating. The identifier pattern, letters, a dash,
+            digits, was written for supplier and catalog codes and it is exactly
+            right for those. On free text it also matches ratings, model numbers
+            and dates written oddly. A roster could carry the families that count,
+            and does not yet.
+          </p>
+          <p>
+            <strong>The same call twice is sometimes the design.</strong> Two
+            verification experts in a group chat running the same script is
+            redundancy someone asked for. A surfer clicking the back button twice
+            is navigation. The same-thread rule now ignores tools it cannot
+            classify as reads or writes, which removed the clicks; the cross-thread
+            rule still fires on the deliberate re-run, because from the trace alone
+            it cannot be told from the accidental one. A rule that could would need
+            to know why the second expert was in the room.
+          </p>
+          <p>
+            On the corpus the two arguable findings in Part 4 belong to a fourth
+            class: the constraint is real and dropped, and the reader has to decide
+            whether the receiving thread needed it. The rule cannot. What it can do
+            is show both events and stay at a severity that costs 25 points out of
+            a check worth a quarter of the score, which is a nudge, not a verdict.
+          </p>
+        </section>
+
+        <section id="judge">
+          <p class="section-kicker">Part 7</p>
+          <h2>What a judge catches that rules cannot</h2>
+          <p>
+            Read the 184 reasons and a pattern appears that has nothing to do with
+            handoffs. 33 labels blame the web surfer: it clicked an irrelevant
+            site, it typed a query that was not concise enough, its OCR read the
+            wrong price. 18 blame the orchestrator for judgment: it concluded
+            before enough information had been gathered, it should have let the
+            surfer scroll further, it replanned when it should have waited. 18
+            blame a verification expert for verifying the wrong thing. 91 of the
+            184 reasons map to no check at all under the keyword map, and most of
+            the ones that do map are about the quality of an action, not the
+            structure of a handoff.
+          </p>
+          <p>
+            Those are judgments about relevance and sufficiency. Was that the right
+            link? Was that enough evidence to stop? Did the code handle the edge
+            case? A rule can check that the constraint crossed the message. It
+            cannot check that the surfer chose well among the links on a page it
+            never saw, and it should not pretend to by scoring the click. That is
+            what an LLM judge is for, and the Who&amp;When numbers say even the
+            judge finds the step hard: 14.2% at step level for the best method in
+            the paper.
+          </p>
+          <p>
+            So the two are not competitors. The rules run first, cost nothing, and
+            settle the structural questions with a line number each. What they
+            leave silent, or leave clean, is the part of the trace a judge should
+            read, and the report's silent list is a reasonable description of where
+            to point it.
+          </p>
+        </section>
+
+        <section id="not-built">
+          <p class="section-kicker">Part 8</p>
+          <h2>What I did not build</h2>
+          <p>
+            <strong>An LLM judge.</strong> The explainable rule is the product. A
+            judge would raise the calibration number and remove the reason to trust
+            it.
+          </p>
+          <p>
+            <strong>Live ingestion from a vendor.</strong> The parsers read files.
+            Connecting to a trace platform's API would make the page's zero-network
+            claim false for the sake of convenience.
+          </p>
+          <p>
+            <strong>Fixing traces or rewriting prompts.</strong> Every finding ends
+            with a suggestion, in words, for a person.
+          </p>
+          <p>
+            <strong>A framework comparison.</strong> The corpus is one domain on
+            one platform plus one public set. Nothing here says which framework
+            hands off better.
+          </p>
+          <p>
+            <strong>Claude Code skill packaging.</strong> Decided against before
+            the build started; the channel does not pay for a tool like this.
+          </p>
+          <p>
+            <strong>An OpenTelemetry parser.</strong> The PRD's stretch goal. The
+            two formats that existed took the weekend; a third with no corpus to
+            validate it against would have been a parser with no test.
+          </p>
+        </section>
+
+        <section id="limits">
+          <p class="section-kicker">Part 9</p>
+          <h2>Limits</h2>
+          <p>
+            <strong>The corpus is small and synthetic.</strong> 15 coordinator runs
+            is enough to show the parsers work and not enough to say how often
+            handoffs break. The single-agent runs contribute to the count and not to
+            the question. Everything in it is procurement with a placeholder buyer,
+            and the identifier families the context rules lean on are the ones that
+            corpus uses.
+          </p>
+          <p>
+            <strong>Relevance is a heuristic.</strong> "The delegation is about the
+            same thing" is decided by shared topic words and identifier families.
+            That is what makes the findings explainable and it is also what makes
+            the arguable ones arguable.
+          </p>
+          <p>
+            <strong>Routing needs a roster and decisions need a sidecar.</strong>
+            Neither is in the Managed Agents stream. Without them the rules that
+            need them are silent and say so, which is honest and also means a
+            trace pasted from a platform that records nothing else is scored on
+            three checks, not five.
+          </p>
+          <p>
+            <strong>The public set is a poor fit, and that is the finding, not an
+            excuse.</strong> Who&amp;When labels task failures in systems without
+            permissions, without lifecycle events and mostly without structured
+            tool calls. A labeled set of handoff failures in a runtime that records
+            those things does not exist yet. When one does, the calibration script
+            needs a parser and nothing else.
+          </p>
+          <p>
+            <strong>One retry, one open question.</strong> The tc-02 finding
+            depends on the variant's results file being a complete record of the
+            handler's decisions. If the file stopped recording after the deny, the
+            finding is a gap in the recording, not in the permission model. The
+            trace cannot tell, and neither can this page.
+          </p>
+        </section>
+      </main>
+    </div>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <p>
+          Every number on this page is generated: the corpus table by
+          <code>npm run results</code>, the calibration tables by
+          <code>npm run calibrate</code>, and the test suite fails if the page
+          disagrees with the files they write. Nothing on this page or in the tool
+          calls a model or makes a network request.
+        </p>
+        <p>
+          Siblings:
+          <a href="https://roanukz.github.io/agent-answer/">Will My Agent Answer This?</a>,
+          <a href="https://roanukz.github.io/should-my-agent-answer/">Should My Agent Answer This?</a>,
+          <a href="https://roanukz.github.io/agent-submit/">Should My Agent Submit This?</a>.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

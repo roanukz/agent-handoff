@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Security-Policy" content="default-src &#39;none&#39;; script-src &#39;self&#39;; style-src &#39;self&#39; &#39;unsafe-inline&#39;; img-src &#39;self&#39; data:; base-uri &#39;none&#39;; form-action &#39;none&#39;">
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Paste a multi-agent trace. Find out where the handoff broke. Five deterministic checks, explainable rules, every finding cites its events. Free, no account, 100% client-side."
+    />
+    <meta name="author" content="Roanuk Zaman" />
+    <meta property="og:title" content="Did My Agents Hand Off? A Multi-Agent Trace Scorer" />
+    <meta
+      property="og:description"
+      content="Paste a multi-agent trace and get a 0 to 100 score for whether the handoffs held, across five explainable checks. Every finding names the events it fired on. No model, no network."
+    />
+    <meta property="og:image" content="https://roanukz.github.io/agent-handoff/og-tool.png" />
+    <meta property="og:image:width" content="2400" />
+    <meta property="og:image:height" content="1254" />
+    <meta
+      property="og:image:alt"
+      content="Three agent threads with a message passing between them, and one message where a constraint has fallen out."
+    />
+    <meta property="og:url" content="https://roanukz.github.io/agent-handoff/tool.html" />
+    <meta property="og:type" content="website" />
+    <meta property="article:author" content="Roanuk Zaman" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='16' fill='%231f6379'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle' fill='white' font-family='sans-serif'%3E%3F%3C/text%3E%3C/svg%3E"
+    />
+    <title>Did My Agents Hand Off? A Multi-Agent Trace Scorer</title>
+    <script type="module" crossorigin src="./assets/tool-CbOf5Idu.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/tool-CUc3O9gN.css">
+  </head>
+  <body>
+    <div id="app">
+      <header class="site-header">
+        <div class="header-inner">
+          <div class="brand">
+            <h1>Did My Agents Hand Off?</h1>
+            <p class="tagline">Paste a multi-agent trace. Find out where the handoff broke.</p>
+          </div>
+          <div class="header-side">
+            <p class="trust-badge">
+              <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2.25" y="2.25" width="11.5" height="11.5" rx="2.5" />
+                <path d="M5 6.25h6M5 9.25h4" />
+              </svg>
+              <span><strong>100% client-side.</strong> No model is called and nothing you paste leaves this page. To check, turn off Wi-Fi and score again.</span>
+            </p>
+            <nav>
+              <a href="index.html">Read the product teardown &larr;</a>
+              <span aria-hidden="true">&middot;</span>
+              <a href="#how-scoring-works">How scoring works</a>
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section id="input-view" aria-label="Trace input">
+          <div class="input-grid">
+            <label class="field">
+              <span class="field-label">Trace</span>
+              <textarea
+                id="editor"
+                spellcheck="false"
+                placeholder="Paste one of:
+  - a Claude Managed Agents session stream (the JSONL lines of primary.jsonl)
+  - a Who&When record (JSON with history, mistake_step, mistake_agent)
+  - a run file in this tool's own format (JSON with threads and events)
+
+For a coordinator run, choose the folder of per-thread files instead, so the child threads' messages are in the picture."
+              ></textarea>
+            </label>
+            <div class="field-column">
+              <label class="field">
+                <span class="field-label">Or choose the trace files</span>
+                <input id="files" type="file" multiple />
+                <span class="field-hint" id="files-hint">primary.jsonl plus each thread's .jsonl, or decisions.json plus trail.jsonl, or one .json record.</span>
+              </label>
+              <label class="field">
+                <span class="field-label">Format</span>
+                <select id="format">
+                  <option value="auto">Detect from the files</option>
+                  <option value="managed">Claude Managed Agents session stream</option>
+                  <option value="sdk">agent-submit Agent SDK record</option>
+                  <option value="whowhen">Who&amp;When record</option>
+                  <option value="run">Run file (this tool's model)</option>
+                </select>
+              </label>
+              <details class="field">
+                <summary class="field-label">Roster (optional): declared tools per agent</summary>
+                <textarea id="roster" spellcheck="false" rows="6" placeholder='{"agents": {"drafter": ["catalog_lookup", "draft_requisition"], "checker": ["supplier_check"]}}'></textarea>
+                <span class="field-hint">The routing check needs to know which tools each agent declares. The event stream never says.</span>
+              </details>
+            </div>
+          </div>
+          <div class="input-actions">
+            <button id="score" type="button" class="btn btn-primary" disabled>Score</button>
+            <span class="samples">
+              <span class="samples-label">Try a sample:</span>
+              <button type="button" class="linklike sample" data-sample="coordinator">coordinator run from agent-submit</button>
+              <button type="button" class="linklike sample" data-sample="broken">a run that breaks on every check</button>
+              <button type="button" class="linklike sample" data-sample="sdk">single-agent SDK control</button>
+              <button type="button" class="linklike sample" data-sample="whowhen">a Who&amp;When shaped log</button>
+            </span>
+          </div>
+          <div id="input-notices"></div>
+        </section>
+
+        <section id="results-view" aria-label="Score" hidden>
+          <div class="results-topbar">
+            <button id="back" type="button" class="linklike">&larr; Score another trace</button>
+            <button id="copy-report" type="button" class="btn btn-primary">Copy report</button>
+          </div>
+          <div id="results-notices"></div>
+          <section id="score-panel" class="card" aria-label="Overall score"></section>
+          <section id="fix-list" class="card" aria-label="Prioritized fixes"></section>
+          <section id="check-cards" aria-label="Checks"></section>
+          <section id="trace-view" class="card" aria-label="The trace"></section>
+        </section>
+
+        <section id="how-scoring-works" aria-label="How scoring works">
+          <h2>How scoring works</h2>
+          <p>
+            A multi-agent run is a set of threads passing messages. When it fails, the trace shows what happened but not where the handoff broke. The
+            usual way to find out is to read the whole trace, or to have a model read it, which is expensive, changes its mind between runs, and cannot
+            tell the person who has to fix the prompt which two lines to look at.
+          </p>
+          <p>
+            This tool runs fixed rules that explain themselves. Each rule compares events in the trace and, when it fires, names the events it compared.
+            The same trace always gets the same score. No model is involved, and nothing you paste leaves your browser.
+          </p>
+          <h3>The score</h3>
+          <p>
+            Each of the five checks starts at 100 points. Every <strong>major</strong> finding costs 25 points and every <strong>minor</strong> finding
+            costs 10. Only the first three findings from any one rule count against the score; the rest are still listed, tagged
+            <em>"same habit, not counted"</em>, because ten instances of one habit is one lesson rather than ten. A check never drops below 0.
+          </p>
+          <p>The overall score is a weighted average of the five checks:</p>
+          <table class="weights-table">
+            <thead>
+              <tr><th>Check</th><th>Weight</th><th>What it asks</th></tr>
+            </thead>
+            <tbody id="weights-body"></tbody>
+          </table>
+          <p>
+            <strong>85 and up:</strong> handed off cleanly. <strong>60 to 84:</strong> the handoffs need attention before this run can be trusted.
+            <strong>Below 60:</strong> a handoff broke. The same bands apply to each check as pass, needs work, or fail, and no run is handed off cleanly
+            with any check below 60, whatever the average says.
+          </p>
+          <h3>Silent is not clean</h3>
+          <p>
+            A rule that cannot run on a trace says so instead of scoring 100. A single-thread trace has no handoffs to check; a trace without tool
+            arguments cannot be checked for duplicate work; a trace without a roster cannot be checked for routing to an agent that lacks the tool. The
+            report lists every silent rule with its reason.
+          </p>
+          <h3>The rule catalog</h3>
+          <div id="catalog"></div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <p>
+          Did My Agents Hand Off? is a product teardown by Roanuk Zaman. The rules, the fixtures and the calibration against a public labeled set are
+          in <a href="https://github.com/Roanukz/agent-handoff">the repository</a>. This page makes no network request.
+        </p>
+      </footer>
+    </div>
+    <div id="toast" role="status" aria-live="polite" hidden></div>
+  </body>
+</html>

@@ -1,0 +1,73 @@
+{
+  "toolu_01JmiJweYYAF123Q6dhuXdG6": {
+    "classification": {
+      "rawTool": "mcp__requisition__threshold_policy",
+      "tool": "threshold_policy",
+      "tier": "A",
+      "reason": "threshold_policy reads only; the agent acts alone",
+      "triggers": []
+    },
+    "decision": "allow"
+  },
+  "toolu_017bCbheVHoqNgACoKH2Thbz": {
+    "classification": {
+      "rawTool": "mcp__requisition__catalog_lookup",
+      "tool": "catalog_lookup",
+      "tier": "A",
+      "reason": "catalog_lookup reads only; the agent acts alone",
+      "triggers": []
+    },
+    "decision": "allow"
+  },
+  "toolu_0156v5xfff1HETtFmTgXzqbB": {
+    "classification": {
+      "rawTool": "mcp__requisition__supplier_check",
+      "tool": "supplier_check",
+      "tier": "A",
+      "reason": "supplier_check reads only; the agent acts alone",
+      "triggers": []
+    },
+    "decision": "allow"
+  },
+  "toolu_01UJZ5AXHs8HmaBSzJTRLQrG": {
+    "classification": {
+      "rawTool": "mcp__requisition__draft_requisition",
+      "tool": "draft_requisition",
+      "tier": "C",
+      "reason": "draft_requisition raised to tier C: draft amount $26,100 is over the single threshold $10,000; session total $26,100 across 1 draft(s) is over the cumulative threshold $25,000",
+      "triggers": [
+        {
+          "kind": "single_threshold",
+          "detail": "draft amount $26,100 is over the single threshold $10,000",
+          "amount": 26100,
+          "threshold": 10000
+        },
+        {
+          "kind": "cumulative_threshold",
+          "detail": "session total $26,100 across 1 draft(s) is over the cumulative threshold $25,000",
+          "amount": 26100,
+          "threshold": 25000
+        }
+      ],
+      "amount": 26100,
+      "cumulativeAmount": 26100
+    },
+    "decision": "allow"
+  },
+  "toolu_01PubMej9HhRL7Sv2V3nKCcE": {
+    "classification": {
+      "rawTool": "mcp__requisition__escalate_to_buyer",
+      "tool": "escalate_to_buyer",
+      "tier": "C",
+      "reason": "escalate_to_buyer always routes to Jordan Ashby; the buyer decides",
+      "triggers": [
+        {
+          "kind": "always_ask",
+          "detail": "escalation is tier C by definition"
+        }
+      ],
+      "draftId": "REQ-0001"
+    },
+    "decision": "allow"
+  }
+}

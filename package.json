@@ -1,0 +1,29 @@
+{
+  "name": "agent-handoff",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Did My Agents Hand Off? A deterministic, no-model scorer for multi-agent traces: five checks, explainable rules, and every finding cites the events it fired on. Runs in the browser or the CLI with no network request.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "score": "tsx src/cli/score.ts",
+    "calibrate": "tsx src/cli/calibrate.ts",
+    "results": "tsx src/cli/results.ts",
+    "fetch:whowhen": "tsx src/cli/fetch-whowhen.ts",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "prebuild": "node -e \"require('node:fs').rmSync('docs/assets', { recursive: true, force: true })\""
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "vite": "^7.1.0",
+    "vitest": "^3.2.0"
+  }
+}

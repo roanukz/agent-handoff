@@ -1,0 +1,16 @@
+{
+  "id": "dup-after-report-fires",
+  "synthetic": true,
+  "primaryThreadId": "t0",
+  "threads": [{"id":"t0","agentName":"coordinator","parentId":null,"tools":[]},{"id":"t1","agentName":"drafter","parentId":"t0","tools":["catalog_lookup","threshold_policy","draft_requisition","update_draft_field"]},{"id":"t2","agentName":"checker","parentId":"t0","tools":["supplier_check","escalate_to_buyer"]}],
+  "toolKinds": {"catalog_lookup":"read","supplier_check":"read","threshold_policy":"read","draft_requisition":"write","update_draft_field":"write","escalate_to_buyer":"write","submit_requisition":"write","finalize_requisition":"write"},
+  "capabilities": {"draft_requisition":["create a draft","draft requisition"],"supplier_check":["check the supplier","verify the supplier"],"submit_requisition":["submit"],"catalog_lookup":["catalog"]},
+  "events": [
+    {"id":"e1","threadId":"t0","kind":"delegation","to":"t1","content":"Look up laptops in the catalog and report what you find."},
+    {"id":"e2","threadId":"t1","kind":"tool_call","tool":"catalog_lookup","args":{"query":"laptop"}},
+    {"id":"e3","threadId":"t1","kind":"tool_result","toolCallId":"e2","result":{"content":"{\"items\":[{\"id\":\"CAT-1001\",\"unitPrice\":1450}]}","isError":false}},
+    {"id":"e4","threadId":"t0","kind":"report","from":"t1","content":"Found CAT-1001, a 14 inch business laptop at $1,450."},
+    {"id":"e5","threadId":"t0","kind":"tool_call","tool":"catalog_lookup","args":{"query":"laptop"}},
+    {"id":"e6","threadId":"t0","kind":"tool_result","toolCallId":"e5","result":{"content":"{\"items\":[{\"id\":\"CAT-1001\",\"unitPrice\":1450}]}","isError":false}}
+  ]
+}

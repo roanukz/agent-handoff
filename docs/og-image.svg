@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="627" viewBox="0 0 1200 627" role="img" aria-labelledby="t d">
+  <!-- Share card for the teardown. Coordinate space 1200 by 627, rendered at 2x.
+       Every element stays inside the 540px center column (x 330 to 870) so the
+       square crop some feeds apply keeps the whole card. Literal hex values from
+       tokens.css: an SVG cannot read a stylesheet. System fonts only. -->
+  <title id="t">Did My Agents Hand Off? A product teardown</title>
+  <desc id="d">Three agent threads passing a task along, with one constraint falling out of the message between them.</desc>
+  <rect width="1200" height="627" fill="#10141a" />
+  <text x="600" y="92" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" letter-spacing="3.4" fill="#4c9bb0">PRODUCT TEARDOWN</text>
+  <text x="600" y="156" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#f7f8f9">Did My Agents Hand Off?</text>
+  <rect x="545" y="178" width="110" height="5" fill="#4c9bb0" />
+  <text x="600" y="222" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="25" fill="#c8ced7">Five deterministic checks over a multi-agent trace.</text>
+  <text x="600" y="256" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="25" fill="#c8ced7">Every finding names the two events it compared.</text>
+  <!-- Three threads: coordinator, drafter, checker. -->
+  <rect x="345" y="330" width="150" height="64" rx="10" fill="#1b2028" stroke="#4c9bb0" stroke-width="3" />
+  <text x="420" y="369" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="#f7f8f9">coordinator</text>
+  <rect x="525" y="330" width="150" height="64" rx="10" fill="#1b2028" stroke="#4c9bb0" stroke-width="3" />
+  <text x="600" y="369" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="#f7f8f9">drafter</text>
+  <rect x="705" y="330" width="150" height="64" rx="10" fill="#1b2028" stroke="#4c9bb0" stroke-width="3" />
+  <text x="780" y="369" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="#f7f8f9">checker</text>
+  <!-- The messages between them. -->
+  <line x1="495" y1="362" x2="525" y2="362" stroke="#4c9bb0" stroke-width="3" />
+  <line x1="675" y1="362" x2="705" y2="362" stroke="#4c9bb0" stroke-width="3" />
+  <!-- The dropped constraint, falling out of the second message. -->
+  <rect x="612" y="436" width="156" height="44" rx="8" fill="#10141a" stroke="#cf9722" stroke-width="3" />
+  <text x="690" y="465" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="20" fill="#cf9722">8 laptops</text>
+  <line x1="690" y1="394" x2="690" y2="436" stroke="#cf9722" stroke-width="3" stroke-dasharray="6 6" />
+  <text x="600" y="540" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="22" fill="#9aa3b0">18 rules, 121 recorded runs, 184 labeled failures, 0 model calls</text>
+  <text x="600" y="584" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="20" fill="#9aa3b0">roanukz.github.io/agent-handoff</text>
+</svg>

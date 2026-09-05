@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="627" viewBox="0 0 1200 627" role="img" aria-labelledby="t d">
+  <!-- Share card for the tool page. Same column rule as og-image.svg: everything
+       inside x 330 to 870. Literal hex from tokens.css, system fonts only. -->
+  <title id="t">Did My Agents Hand Off? A multi-agent trace scorer</title>
+  <desc id="d">A trace with three threads and a score, where one finding points at the two events it compared.</desc>
+  <rect width="1200" height="627" fill="#10141a" />
+  <text x="600" y="92" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" letter-spacing="3.4" fill="#4c9bb0">PASTE A TRACE. GET A SCORE.</text>
+  <text x="600" y="156" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#f7f8f9">Did My Agents Hand Off?</text>
+  <rect x="545" y="178" width="110" height="5" fill="#4c9bb0" />
+  <text x="600" y="222" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="25" fill="#c8ced7">Find where the handoff broke, in two lines.</text>
+  <text x="600" y="256" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="25" fill="#c8ced7">No model, no account, nothing leaves the page.</text>
+  <!-- A score and the events beside it. -->
+  <rect x="345" y="312" width="180" height="150" rx="12" fill="#1b2028" stroke="#2b313b" stroke-width="2" />
+  <text x="435" y="392" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="72" font-weight="700" fill="#f7f8f9">50</text>
+  <text x="435" y="432" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="18" fill="#9aa3b0">a handoff broke</text>
+  <rect x="555" y="312" width="300" height="66" rx="8" fill="#1b2028" stroke="#4c9bb0" stroke-width="2" />
+  <text x="575" y="338" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" fill="#4c9bb0">#1 request</text>
+  <text x="575" y="364" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="19" fill="#f7f8f9">8 laptops from SUP-003, under $12,000</text>
+  <rect x="555" y="396" width="300" height="66" rx="8" fill="#1b2028" stroke="#cf9722" stroke-width="2" />
+  <text x="575" y="422" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" fill="#cf9722">#4 delegation to drafter</text>
+  <text x="575" y="448" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="19" fill="#f7f8f9">Create a draft for laptops for Denver.</text>
+  <text x="600" y="540" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="22" fill="#9aa3b0">Context, duplicates, routing, termination, permissions</text>
+  <text x="600" y="584" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="20" fill="#9aa3b0">roanukz.github.io/agent-handoff/tool.html</text>
+</svg>

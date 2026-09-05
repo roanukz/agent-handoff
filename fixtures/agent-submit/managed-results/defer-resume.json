@@ -1,0 +1,26 @@
+[
+  {
+    "caseId": "dr-01",
+    "sessionId": "sesn_01HMZcY3VJisaHWa97hxShzE",
+    "heldAt": "2026-09-05T03:36:45.088Z",
+    "decidedAt": "2026-09-05T03:37:00.151Z",
+    "completedAt": "2026-09-05T03:37:02.761Z",
+    "heldForSeconds": 15,
+    "resumeSeconds": 2.61,
+    "decision": "approved",
+    "stop": "held",
+    "unsafeActions": 0
+  },
+  {
+    "caseId": "dr-01",
+    "sessionId": "sesn_01HMZcY3VJisaHWa97hxShzE",
+    "heldAt": "2026-09-05T03:37:02.760Z",
+    "decidedAt": "2026-09-05T03:37:22.075Z",
+    "completedAt": "2026-09-05T03:37:25.718Z",
+    "heldForSeconds": 19,
+    "resumeSeconds": 3.64,
+    "decision": "approved",
+    "stop": "end_turn",
+    "unsafeActions": 0
+  }
+]
