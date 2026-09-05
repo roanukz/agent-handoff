@@ -160,10 +160,13 @@
               must not. They were run on 121 recorded runs of a purchasing
               assistant from the previous project, 106 with a single agent and 15
               with a coordinator handing work to a drafter and a supplier
-              checker. Then they were tested against a public set of 184 failed
-              runs that researchers had labeled by hand with the step where
-              things went wrong, to see how often a rule points at the same step
-              (<a href="#formats">Part 3</a>).
+              checker. The 106 single-agent runs double as the control: with no
+              handoff in them, rules built for handoffs should stay silent, and
+              they did. Then the rules were tested against a public set of 184
+              failed runs that researchers had labeled by hand with the step
+              where things went wrong. The bar was set before that test ran:
+              point at the labeled step more often than a random pick would
+              (<a href="#formats">Part 3</a>, <a href="#calibration">Part 5</a>).
             </li>
             <li>
               <strong>The results on the recorded runs.</strong> The rules fired
@@ -180,14 +183,26 @@
             <li>
               <strong>The result on the public set, and what it means.</strong>
               The rules pointed at the labeled step 3 times out of 184. Picking
-              a step at random would have done better, about 8 of 184. That
-              number is published rather than tuned away because it draws the
-              product's boundary with data. The public set's failures are about
-              judgment: an agent clicking the wrong link, or stopping before it
-              had enough. Judgment is what an AI reader is for. Structural breaks
-              in a handoff are what these rules are for, and they cost nothing
-              to run first (<a href="#calibration">Part 5</a>,
-              <a href="#judge">Part 7</a>).
+              a step at random would have done better, about 8 of 184, and the
+              best AI reader in the published paper managed 14.2% on the same
+              set. The number is published rather than tuned away. It has two
+              readings this test cannot separate: the rules miss real handoff
+              breaks, or the public set has almost none with enough structure to
+              read, because its failures are about judgment, an agent clicking
+              the wrong link or stopping before it had enough. Judgment is what
+              an AI reader is for; structural breaks are what these rules are
+              for, and they cost nothing to run first
+              (<a href="#calibration">Part 5</a>, <a href="#judge">Part 7</a>).
+            </li>
+            <li>
+              <strong>Two cautions, and how to check.</strong> A first pass over
+              the public set exposed defects in the rules that were fixed before
+              the reported number, and every fix reduced findings; a fresh
+              labeled set would still be a fairer test. And every number on this
+              page is produced by a script from the recorded data, with a test
+              that fails if the page and the script disagree, so anyone can rerun
+              it with one command and no key (<a href="#calibration">Part 5</a>,
+              <a href="#limits">Part 9</a>).
             </li>
           </ul>
         </section>
@@ -382,12 +397,17 @@
             through its tool calls, not its words.
           </p>
           <p>
-            The SDK corpus is a control. Every run is one thread, so eleven of the
-            18 rules are silent on it by construction, and the record keeps no
-            arguments for reads, so the duplicate-work rules are silent on a run
-            that only read. The one check the SDK record exercises fully is
-            permission continuity: a defer, a buyer's decision, an allow, on the
-            same tool-use id. That is why it is kept.
+            The 106 single-agent runs, 9 on the SDK and 97 on Managed Agents, are
+            the control. A run with one thread has no handoff in it, so the eleven
+            rules that compare across threads cannot fire on it, and the test is
+            whether they stayed silent rather than inventing one. They did, on all
+            106. The seven rules that work inside one thread, duplicate work and
+            permission continuity, do run there, and they fired three times across
+            the 106, each on something Part 4 shows against two lines. The SDK
+            record keeps no arguments for reads, so the duplicate-work rules are
+            silent on an SDK run that only read; the one check that record
+            exercises fully is permission continuity: a defer, a buyer's decision,
+            an allow, on the same tool-use id. That is why it is kept.
           </p>
           <div class="callout callout-notice">
             <h4>Silent, counted</h4>
@@ -488,6 +508,15 @@
           <p class="section-kicker">Part 5</p>
           <h2>Calibration against a public labeled set</h2>
           <p>
+            What the test was expected to show was written down before it ran.
+            The PRD said a null result on some rules was expected and acceptable,
+            and asked for the numbers to be published whatever they were. The bar
+            for the rules working was two things: point at the labeled step more
+            often than a random pick would, and stay silent on runs with no
+            handoff, which is the control in Part 3. The second held. The first
+            did not.
+          </p>
+          <p>
             Who&amp;When has 184 failed runs with hand-written labels: the agent
             responsible, the step, and a sentence of reason. 58 are hand-crafted
             systems in the Magentic-One pattern, where an orchestrator (that
@@ -558,6 +587,12 @@
             </table>
           </div>
           <p>
+            On the same benchmark, then, three numbers on one scale: a random
+            pick, 4.5%; these rules, 1.6%; the best model-based method in the
+            Who&amp;When paper, 14.2%, under the paper's own conditions rather
+            than a rerun here.
+          </p>
+          <p>
             Read the table for what it says about the data before what it says
             about the rules. The permission rules have nothing to measure: no
             Who&amp;When failure is a permission failure, because those systems have
@@ -585,6 +620,35 @@
             finding somewhere in the labeled agent's thread. The 126 group chats
             have no delegations at all; 25 of them had no code block either, and on
             those every rule was silent. A group chat is a room, not a handoff.
+          </p>
+          <p>
+            The null has two readings, and this test cannot tell them apart. One:
+            the rules do not catch what breaks in a handoff. Two: the set has
+            almost no handoff failures with structure a rule can read, so the test
+            is too weak to show whether they would. What would separate the two is
+            a labeled set of failures from a runtime that records tool arguments,
+            decisions and thread lifecycle. None exists yet. When one does, the
+            calibration script needs a parser for it and nothing else.
+          </p>
+          <p>
+            One more thing a reader of a calibration table is owed: the public set
+            changed the rules. A first pass over it turned up false positives that
+            were defects in the rules rather than judgments about the data, and
+            they were fixed before the numbers here were written. Only the latest
+            report a coordinator received counts as upstream, not every report it
+            ever got. A report's figures and links are outputs, not constraints. A
+            browser click repeated in one thread is not duplicate work. A plan that
+            mentions "the final answer" is not a final answer. Every one of those
+            adjustments reduced findings, none was made by looking at which step
+            was labeled, and the number reported is from the final pass. The
+            decision log lists each one. Still, the set that produced the number
+            is the set that shaped the rules, and a fresh labeled set would be a
+            fairer test.
+          </p>
+          <p>
+            Every number in this part is written by the calibration script into a
+            results file, the page quotes the file, and the test suite fails if the
+            two disagree. Rerunning it is one command and needs no key.
           </p>
         </section>
 
@@ -726,12 +790,13 @@
             three checks, not five.
           </p>
           <p>
-            <strong>The public set is a poor fit, and that is the finding, not an
-            excuse.</strong> Who&amp;When labels task failures in systems without
+            <strong>The public set is a poor fit, which leaves the null with two
+            readings.</strong> Who&amp;When labels task failures in systems without
             permissions, without lifecycle events and mostly without structured
-            tool calls. A labeled set of handoff failures in a runtime that records
-            those things does not exist yet. When one does, the calibration script
-            needs a parser and nothing else.
+            tool calls, and it shaped the rules before it measured them. Part 5
+            says why this page cannot tell "the rules miss real breaks" from "the
+            set has none to find". A labeled set of handoff failures in a runtime
+            that records those things does not exist yet.
           </p>
           <p>
             <strong>One retry, one open question.</strong> The tc-02 finding

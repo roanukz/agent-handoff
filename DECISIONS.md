@@ -35,3 +35,22 @@ Both met. The Managed Agents variant of agent-submit landed on 2026-09-05 at 00:
 | 2026-09-05 | 18 rules, not the PRD's floor of 15. Termination and permission continuity got a fourth rule each. | A thread terminated with no reason and a deny retried under the same name are both things the PRD's check definitions describe but its starter list does not name. |
 | 2026-09-05 | The teardown is `docs/index.html`, not `docs/index.md`. | Same reason as agent-submit: the house style needs the shared hero, the tokens with their dark mapping, and the contents rail. |
 | 2026-09-05 | Built locally. No public repository created, nothing pushed. | Roanuk creates the public repo on his word, as with agent-submit. |
+
+## Rule adjustments after the first pass over the corpus and the labeled set (2026-09-05)
+
+The teardown discloses that the corpus and the public labeled set changed the rules before the reported numbers were written. This is the list. Every adjustment reduced findings; none was made by looking at which step a label named. No earlier numbers are recorded here or on the page, per the house rule on superseded builds.
+
+| Adjustment | Prompted by | Direction |
+|---|---|---|
+| The "first downstream call" check requires the call's arguments to carry a value of the constraint's kind: a number for a count, a code for an identifier. A catalog lookup with no number in it is not the call that should carry "8". | Corpus: catalog lookups blamed for counts they could not take. | Fewer findings |
+| `cc-report-dropped` compares identifiers only. A report's figures (a unit price, a running total) are outputs the next delegation may leave out. | Corpus: unit prices flagged as dropped constraints. | Fewer |
+| Only the latest report a coordinator received counts as upstream of its next delegation, not every report it ever received. | Labeled set: orchestrators with dozens of prior reports. | Fewer |
+| Constraints read from a report are limited to identifier codes and money-labeled amounts. URLs, counts, caps and negations in a report are not constraints. | Labeled set: web surfer screenshots full of links, counts and page text. | Fewer |
+| An identifier with a family prefix (SUP-, CAT-, REQ-) is about its family only; its sentence neighbors are not used to decide relevance. | Fixture near miss and corpus. | Fewer |
+| Duplicate pairs are consecutive: each call pairs with its most recent identical predecessor, so five repeats are four findings, not ten. | Labeled set: repeated actions producing quadratic findings. | Fewer |
+| `dup-same-thread` skips tools it cannot classify as a read or a write. | Labeled set: a browser click or scroll repeated is paging. | Fewer |
+| Without a recorded session end, only a message that declares a final answer counts as one. | Labeled set: an orchestrator plan mentioning "the final answer" read as the answer. | Fewer |
+| `perm-deny-retried` skips a retry that was itself held for a decision. | Corpus: a rejected draft resubmitted with a new justification and approved on its own ask (db-11). | Fewer |
+| `route-tool-not-held` skips sentences in which the sender says what it will do itself, and the roster no longer maps the bare word "lookup" to a tool. | Corpus: "I will validate the supplier separately" read as a request (tc-05); a name-to-id lookup mapped to the catalog tool (hp-02). | Fewer |
+| "Same work" for the permission rules means the same argument keys carrying the same identifiers and numbers, not a shared draft id. | Fixture near misses: every update names its draft. | Fewer |
+| A figure that is a cap ("under $12,000") is reported once, as the cap, not also as an amount. | Fixture. | Fewer |
