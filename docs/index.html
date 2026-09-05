@@ -73,8 +73,8 @@
           <div class="fact">
             <span class="fact-value">18 rules</span>
             <span class="fact-label"
-              >Across five checks. Each rule has a fixture that fires it and a
-              fixture that must not, and each finding cites the event ids it
+              >Across five checks. Each rule has a test case that fires it and
+              a near miss that must not, and each finding names the events it
               compared</span
             >
           </div>
@@ -97,9 +97,10 @@
           <div class="fact">
             <span class="fact-value">0</span>
             <span class="fact-label"
-              >Model calls, in the page, the CLI, the tests and the calibration.
-              The page enforces it with a Content Security Policy rather than a
-              promise</span
+              >Model calls, in the page, the command line, the tests and the
+              calibration. The page enforces it with a Content Security Policy,
+              a browser setting that refuses every network request, rather than
+              with a promise</span
             >
           </div>
         </div>
@@ -129,47 +130,64 @@
           <h2>Summary</h2>
           <ul>
             <li>
-              <strong>A handoff failure is a comparison between two events.</strong>
-              The request said 8 laptops and the delegation did not; the drafter
-              reported SUP-003 and the next message talked about "the supplier";
-              the checker was asked to draft; a thread was still running when the
-              answer went out; a write held for a buyer in one thread executed in
-              another with no decision. Each of those is a rule that reads two
-              lines, and each finding shows the two lines (<a href="#checks">Part 2</a>).
+              <strong>The problem.</strong> Companies are starting to run
+              several AI agents on one job: one agent takes the request and
+              hands pieces of it to others. When the job goes wrong, the record
+              of the run (the trace: every message and every action, in order)
+              shows what each agent did, but not where the handoff between them
+              broke. The usual fix is to have another AI read the record and say
+              where it thinks the failure was. That costs money on every run,
+              can give a different answer tomorrow, and comes back as an opinion
+              rather than the two lines a person needs in order to fix the
+              instructions (<a href="#why-rules">Part 1</a>).
             </li>
             <li>
-              <strong>The format decides what a rule can see.</strong> The Agent
-              SDK record keeps names, tiers and decisions but no arguments for
-              reads and only one thread. The Managed Agents session stream carries
-              a child thread's tool calls only when they were cross-posted to the
-              client, and never its messages, so context checks need the
-              per-thread streams. Neither format lists an agent's tools, so
-              routing needs a roster. A rule that cannot run says so instead of
-              scoring 100 (<a href="#formats">Part 3</a>).
+              <strong>The thesis.</strong> Most handoff failures are simple
+              comparisons that need no AI at all. Did the "8 laptops" in the
+              request make it into the task given to the next agent? Did two
+              agents run the same lookup? Was a task sent to an agent that had
+              no tool for it? Did every agent that was given work report back
+              before the final answer went out? Did a "stop and ask a human"
+              decision on one agent hold on the next? A fixed rule can make each
+              comparison for free, give the same answer every time, and point at
+              the two exact lines. That is the product, and it is deliberately
+              modest about what a fixed rule cannot see
+              (<a href="#checks">Part 2</a>).
             </li>
             <li>
-              <strong>On 121 recorded runs the rules fired nine times.</strong>
-              Five of the nine are one thread creating the same draft three or
-              four times in a row, which is a decomposition attempt wearing the
-              costume of duplicate work. One is a coordinator asking the supplier
-              checker for a lookup it does not have. One is a buyer's deny
-              followed by the same draft executing with no decision recorded
+              <strong>The method.</strong> Eighteen rules in five groups, each
+              shipped with a test case that must trigger it and a near miss that
+              must not. They were run on 121 recorded runs of a purchasing
+              assistant from the previous project, 106 with a single agent and 15
+              with a coordinator handing work to a drafter and a supplier
+              checker. Then they were tested against a public set of 184 failed
+              runs that researchers had labeled by hand with the step where
+              things went wrong, to see how often a rule points at the same step
+              (<a href="#formats">Part 3</a>).
+            </li>
+            <li>
+              <strong>The results on the recorded runs.</strong> The rules fired
+              nine times, and every one is something a reader can confirm from
+              two lines. Five are one agent creating the same purchase draft
+              three or four times in a row, which is what a purchase split up to
+              stay under an approval limit looks like from outside. One is a task
+              sent to a helper that had no tool for it, and said so. One is a
+              purchase the buyer had rejected being created again with no record
+              of anyone deciding. The other two are dropped details a reader
+              could argue about, and the page says so
               (<a href="#corpus">Part 4</a>).
             </li>
             <li>
-              <strong>Against the public labeled set the rules are at chance.</strong>
-              Three of 184 labeled steps cited, below the random baseline. The
-              labels describe wrong actions: a surfer clicking an irrelevant site,
-              an expert writing wrong code, an orchestrator concluding on too
-              little. 91 of the 184 reasons name nothing any handoff check asks
-              about, and the logs have no tool arguments, no thread lifecycle and
-              no permissions for the rest (<a href="#calibration">Part 5</a>).
-            </li>
-            <li>
-              <strong>The null result is the product's boundary, drawn with data.</strong>
-              Rules find structural breaks in a handoff. Whether the surfer chose
-              the right link is a judgment about relevance, and that is what a
-              judge is for (<a href="#judge">Part 7</a>).
+              <strong>The result on the public set, and what it means.</strong>
+              The rules pointed at the labeled step 3 times out of 184. Picking
+              a step at random would have done better, about 8 of 184. That
+              number is published rather than tuned away because it draws the
+              product's boundary with data. The public set's failures are about
+              judgment: an agent clicking the wrong link, or stopping before it
+              had enough. Judgment is what an AI reader is for. Structural breaks
+              in a handoff are what these rules are for, and they cost nothing
+              to run first (<a href="#calibration">Part 5</a>,
+              <a href="#judge">Part 7</a>).
             </li>
           </ul>
         </section>
@@ -220,12 +238,19 @@
           <p class="section-kicker">Part 2</p>
           <h2>Five checks and the rule catalog</h2>
           <p>
-            Every parser produces the same internal model: threads, and events in
-            order, each with a thread, a kind (request, message, delegation,
-            report, tool call, tool result, decision, lifecycle), and whatever the
-            kind carries. Rules read that model and nothing else, so a rule that
-            fires on a Managed Agents stream fires identically on a Who&amp;When
-            log once the parser has done its work.
+            A few words carry the rest of this page. A <strong>thread</strong> is
+            one agent's own sequence of events inside a run; the coordinator has
+            one, and each helper it starts has its own. A
+            <strong>delegation</strong> is the message that hands a task from one
+            thread to another, and a <strong>report</strong> is the message back.
+            A <strong>tool call</strong> is an agent using a capability it was
+            given, such as looking up a catalog item, with the arguments it passed
+            and the result it got. A <strong>parser</strong> is the code that
+            reads one vendor's trace format into a shared model made of those
+            pieces: threads, and events in order, each with a thread, a kind, and
+            whatever the kind carries. Rules read that model and nothing else, so
+            a rule that fires on a Managed Agents stream fires identically on a
+            Who&amp;When log once the parser has done its work.
           </p>
           <div class="table-scroll">
             <table>
@@ -249,12 +274,13 @@
             check below 60, because an average is exactly the thing that hides one
             collapsed dimension. What is new here is the silent state. A rule that
             cannot run on a trace, because the trace has one thread, or no tool
-            arguments, or no roster, or no recorded decision, is listed as silent
-            with its reason. Silent is not clean, and the report says which.
+            arguments, or no roster (the list of tools each agent is allowed to
+            use), or no recorded decision, is listed as silent with its reason.
+            Silent is not clean, and the report says which.
           </p>
           <div class="table-scroll">
             <table>
-              <caption>The 18 rules. "Needs" is what the trace has to contain for the rule to run at all. Every rule ships with a synthetic fixture that fires it and a near miss that must not, and the test suite fails if either is missing.</caption>
+              <caption>The 18 rules. "Needs" is what the trace has to contain for the rule to run at all. Every rule ships with a synthetic test case (a fixture) that fires it and a near miss that must not, and the test suite fails if either is missing.</caption>
               <thead>
                 <tr><th>Rule</th><th>Fires when</th><th>Severity</th><th>Needs</th></tr>
               </thead>
@@ -305,9 +331,13 @@
           <p class="section-kicker">Part 3</p>
           <h2>Two trace formats and what each lacks</h2>
           <p>
-            The PRD asked for the rules to run unchanged across the agent-submit
-            hook log and the Managed Agents thread stream. The first surprise was
-            that agent-submit has no hook log. Its hooks write to stderr; what it
+            The two formats come from the two ways the previous project was run.
+            The Claude Agent SDK is the toolkit for running an agent on a machine
+            you control; Claude Managed Agents is the hosted version, where the
+            platform runs the loop and your code answers when an agent calls a
+            tool. The PRD asked for the rules to run unchanged across the
+            agent-submit hook log and the Managed Agents thread stream. The first
+            surprise was that agent-submit has no hook log. Its hooks write to stderr; what it
             persists per session is a decisions file (the tier classification and
             decision per tool-use id, in call order) and a trail (decision lines
             with reasons, and one line per write with before and after). That is
@@ -317,7 +347,7 @@
             <table>
               <caption>What each format carries, and therefore which rules can run on it. A third format, the Who&amp;When labeled set, is in Part 5.</caption>
               <thead>
-                <tr><th>Format</th><th>Threads</th><th>Tool arguments</th><th>Delegations and reports</th><th>Lifecycle</th><th>Decisions</th><th>Declared tools</th></tr>
+                <tr><th>Format</th><th>Threads</th><th>Tool arguments</th><th>Delegations and reports</th><th>Lifecycle (started, idle, terminated)</th><th>Decisions (allow, ask, deny)</th><th>Declared tools</th></tr>
               </thead>
               <tbody>
                 <tr>
@@ -335,7 +365,7 @@
                   <td>Every custom tool call, with input and result</td>
                   <td>On the primary stream as sent and received; mirrored on the child's stream</td>
                   <td>Created, running, idle with a stop reason, terminated</td>
-                  <td>Not in the stream. The client that answered the call has them; the variant wrote them to a results file the parser joins</td>
+                  <td>Not in the stream. The client that answered the call has them; the variant wrote them to a companion results file (a sidecar) that the parser joins to the trace</td>
                   <td>Not in the stream. A roster file supplies them</td>
                 </tr>
               </tbody>
@@ -460,9 +490,10 @@
           <p>
             Who&amp;When has 184 failed runs with hand-written labels: the agent
             responsible, the step, and a sentence of reason. 58 are hand-crafted
-            systems in the Magentic-One pattern, an orchestrator delegating to a
-            web surfer and others; 126 are algorithm-generated group chats of
-            experts sharing a code executor. The parser turns each history entry
+            systems in the Magentic-One pattern, where an orchestrator (that
+            system's word for the coordinator) delegates to a web surfer and
+            others; 126 are algorithm-generated group chats of experts sharing a
+            code executor. The parser turns each history entry
             into exactly one event, so a label on step 12 is a label on event
             <code>step-12</code>, and a hit is a finding that cites it. The set is
             fetched by a script rather than committed, because the records embed
@@ -486,9 +517,12 @@
             </table>
           </div>
           <p>
-            Precision and recall per rule need one more definition. The labels mark
-            the failing step, not the failure kind, so recall is measured against a
-            keyword map from the label's free-text reason to a check: "did not
+            Two more numbers per rule need defining. Precision asks: of the times
+            the rule fired, how often did it point at the labeled step? Recall
+            asks: of the failures the rule was meant to catch, how many did it
+            point at? The labels mark the failing step, not the failure kind, so
+            recall is measured against a keyword map from the label's free-text
+            reason to a check: "did not
             include the criterion" maps to context carried, "should have let the
             surfer scroll further" to termination, "repeated" to duplicate work.
             The map is published in the results file and can be argued with. Under
@@ -558,8 +592,10 @@
           <p class="section-kicker">Part 6</p>
           <h2>False positives</h2>
           <p>
-            The false positives that remain sort into three classes, and each is a
-            statement about what a text rule cannot know.
+            A false positive is a finding that is wrong: the rule fired and a
+            reader who looks at the two lines would disagree. The ones that remain
+            sort into three classes, and each is a statement about what a text
+            rule cannot know.
           </p>
           <p>
             <strong>A figure is not a constraint just because it is a figure.</strong>
