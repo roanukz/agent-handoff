@@ -54,10 +54,8 @@
           where the handoff broke. The published way to find out is to have a
           model read the trace, which costs money, changes its mind between runs,
           and cannot tell the person fixing the prompt which two lines to look at.
-          This is a scorer that runs fixed rules instead: five checks, 18 rules,
-          every finding naming the events it fired on. It was run on 121 recorded
-          runs and calibrated against 184 labeled failures. The calibration came
-          back null. This is the thinking behind it, and behind publishing that.
+          This is the thinking behind a scorer that runs fixed rules instead, and
+          behind publishing the calibration that came back null.
         </p>
         <p class="byline">
           Roanuk Zaman &middot; Product teardown of a tool I designed, directed
@@ -107,11 +105,30 @@
       </div>
     </header>
 
+    <div class="wrap">
+      <section id="tldr" class="brief" aria-label="TL;DR">
+        <p class="section-kicker">Thirty seconds</p>
+        <h2>TL;DR</h2>
+        <p class="brief-definition">Too long; didn't read. The whole page in five sentences.</p>
+        <p class="brief-body">
+          Companies now run several AI agents on one job, and when it fails nobody
+          can see where the handoff broke. I built fixed rules that find the common
+          breaks and show the two lines that prove each one, with no AI and no cost
+          per run. On recorded runs they found nine problems a reader can confirm
+          from those lines, two of them arguable. On a public set of labeled
+          failures they found almost nothing: those failures are about judgment,
+          which an AI reader does better. Run the rules first, and send an AI
+          reader whatever they leave silent.
+        </p>
+      </section>
+    </div>
+
     <div class="wrap layout">
       <nav class="toc" aria-label="Contents">
         <p class="toc-title">Contents</p>
         <ol>
-          <li><a href="#tldr">Summary</a></li>
+          <li><a href="#tldr">TL;DR</a></li>
+          <li><a href="#summary">Summary</a></li>
           <li><a href="#why-rules">1. Why rules and not a judge</a></li>
           <li><a href="#checks">2. Five checks and the rule catalog</a></li>
           <li><a href="#formats">3. Two trace formats and what each lacks</a></li>
@@ -125,8 +142,8 @@
       </nav>
 
       <main id="main" tabindex="-1">
-        <section id="tldr" class="tldr">
-          <p class="section-kicker">The short version</p>
+        <section id="summary" class="summary">
+          <p class="section-kicker">Three minutes</p>
           <h2>Summary</h2>
           <ul>
             <li>
@@ -169,33 +186,33 @@
               (<a href="#formats">Part 3</a>, <a href="#calibration">Part 5</a>).
             </li>
             <li>
-              <strong>The results on the recorded runs.</strong> The rules fired
+              <strong>The results.</strong> On the recorded runs the rules fired
               nine times, and every one is something a reader can confirm from
               two lines. Five are one agent creating the same purchase draft
               three or four times in a row, which is what a purchase split up to
               stay under an approval limit looks like from outside. One is a task
               sent to a helper that had no tool for it, and said so. One is a
               purchase the buyer had rejected being created again with no record
-              of anyone deciding. The other two are dropped details a reader
-              could argue about, and the page says so
-              (<a href="#corpus">Part 4</a>).
+              of anyone deciding. Two are dropped details a reader could argue
+              about, and the page says so. On the public set the rules pointed
+              at the labeled step 3 times out of 184. Picking a step at random
+              would have done better, about 8 of 184, and the best AI reader in
+              the published paper managed 14.2% on the same set
+              (<a href="#corpus">Part 4</a>, <a href="#calibration">Part 5</a>).
             </li>
             <li>
-              <strong>The result on the public set, and what it means.</strong>
-              The rules pointed at the labeled step 3 times out of 184. Picking
-              a step at random would have done better, about 8 of 184, and the
-              best AI reader in the published paper managed 14.2% on the same
-              set. The number is published rather than tuned away. It has two
-              readings this test cannot separate: the rules miss real handoff
-              breaks, or the public set has almost none with enough structure to
-              read, because its failures are about judgment, an agent clicking
-              the wrong link or stopping before it had enough. Judgment is what
-              an AI reader is for; structural breaks are what these rules are
-              for, and they cost nothing to run first
-              (<a href="#calibration">Part 5</a>, <a href="#judge">Part 7</a>).
+              <strong>What it means.</strong> The public-set number is published
+              rather than tuned away. It has two readings this test cannot
+              separate: the rules miss real handoff breaks, or the public set has
+              almost none with enough structure to read, because its failures
+              are about judgment, an agent clicking the wrong link or stopping
+              before it had enough. Judgment is what an AI reader is for;
+              structural breaks are what these rules are for, and they cost
+              nothing to run first (<a href="#calibration">Part 5</a>,
+              <a href="#judge">Part 7</a>).
             </li>
             <li>
-              <strong>Two cautions, and how to check.</strong> A first pass over
+              <strong>Cautions, and how to check.</strong> A first pass over
               the public set exposed defects in the rules that were fixed before
               the reported number, and every fix reduced findings; a fresh
               labeled set would still be a fairer test. And every number on this
