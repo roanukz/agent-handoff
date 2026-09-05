@@ -21,7 +21,7 @@ export function summaryLine(report: Report): string {
   const checks = `${report.checksWithIssues} check${report.checksWithIssues === 1 ? '' : 's'}`
   if (report.fixes.length === 0 || report.topFixRecovery === 0) return `${issues} across ${checks}.`
   const top = Math.min(3, report.fixes.length)
-  return `${issues} across ${checks}. The top ${top} fix${top === 1 ? '' : 'es'} below recover ~${report.topFixRecovery} points.`
+  return `${issues} across ${checks}. The top ${top} fix${top === 1 ? '' : 'es'} below recover${top === 1 ? 's' : ''} ~${report.topFixRecovery} points.`
 }
 
 function countRan(report: Report): number {
